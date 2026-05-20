@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CoffIE — Gas for the Soul</title>
+<meta name="description" content="Ireland's live coffee map. Find the best coffee near you, see prices, read reviews.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --cream: #F5EFE0;
+  --cream2: #EDE4D0;
+  --brown: #3B1F0E;
+  --brown2: #5C3317;
+  --caramel: #C8843A;
+  --caramel2: #E8A250;
+  --gold: #D4A843;
+  --muted: #8C7355;
+  --border: rgba(59,31,14,0.12);
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--brown); height:100dvh; overflow:hidden; display:flex; flex-direction:column; }
+
+header { background:var(--brown); padding:0 16px; height:58px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; z-index:100; }
+.logo { font-family:'Playfair Display',serif; font-weight:900; font-size:26px; color:var(--cream); }
+.logo span { color:var(--caramel2); }
+.logo-sub { font-size:10px; color:rgba(245,239,224,0.45); font-weight:500; letter-spacing:0.4px; margin-top:-2px; }
+
+.icon-btn { width:36px; height:36px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--cream); font-size:17px; }
+.icon-btn:active { background:var(--caramel); }
+.header-right { display:flex; gap:8px; }
+
+.filter-bar { background:var(--brown2); padding:10px 14px; display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; flex-shrink:0; }
+.filter-bar::-webkit-scrollbar { display:none; }
+.chip { flex-shrink:0; padding:6px 14px; border-radius:20px; font-family:'DM Sans',sans-serif; font-weight:600; font-size:13px; border:1.5px solid rgba(255,255,255,0.2); background:transparent; color:rgba(245,239,224,0.7); cursor:pointer; white-space:nowrap; transition:all 0.15s; }
+.chip.active { background:var(--caramel2); border-color:var(--caramel2); color:var(--brown); }
+
+.map-wrap { position:relative; flex:1; display:flex; flex-direction:column; overflow:hidden; }
+#map { flex:1; }
+.leaflet-tile { filter:sepia(0.3) saturate(0.8) brightness(1.05); }
+.leaflet-container { background:#e8dcc8; }
+
+.map-search { position:absolute; top:10px; left:10px; right:10px; z-index:50; background:rgba(245,239,224,0.96); border:1.5px solid var(--caramel); border-radius:14px; display:flex; align-items:center; padding:10px 14px; gap:10px; backdrop-filter:blur(8px); box-shadow:0 4px 20px rgba(26,10,0,0.2); }
+.map-search input { background:none; border:none; outline:none; font-family:'DM Sans',sans-serif; font-size:15px; color:var(--brown); flex:1; }
+.map-search input::placeholder { color:var(--muted); }
+
+.coffee-marker { background:var(--brown); border:2px solid var(--caramel); border-radius:22px; padding:4px 9px 4px 7px; font-family:'DM Sans',sans-serif; font-weight:600; font-size:12px; color:var(--cream); white-space:nowrap; cursor:pointer; box-shadow:0 2px 10px rgba(26,10,0,0.3); display:flex; align-items:center; gap:4px; }
+.coffee-marker.featured { border-color:var(--gold); background:var(--brown2); }
+
+.sheet-overlay { position:fixed; inset:0; background:rgba(26,10,0,0.45); z-index:200; opacity:0; pointer-events:none; transition:opacity 0.25s; backdrop-filter:blur(2px); }
+.sheet-overlay.visible { opacity:1; pointer-events:all; }
+.bottom-sheet { position:fixed; bottom:0; left:0; right:0; background:var(--cream); border-radius:22px 22px 0 0; border-top:2px solid var(--caramel); z-index:300; transform:translateY(100%); transition:transform 0.32s cubic-bezier(0.32,0.72,0,1); max-height:88dvh; overflow-y:auto; }
+.bottom-sheet.open { transform:translateY(0); }
+.sheet-handle { width:40px; height:4px; background:var(--cream2); border-radius:2px; margin:12px auto 0; }
+.sheet-content { padding:18px 16px 24px; }
+
+.section-title { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:14px; color:var(--brown); }
+.cafe-name { font-family:'Playfair Display',serif; font-weight:700; font-size:20px; line-height:1.15; margin-bottom:3px; }
+.cafe-meta { font-size:13px; color:var(--muted); display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+.open-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.open-badge.open { background:rgba(60,140,60,0.12); color:#2d7a2d; }
+.open-badge.closed { background:rgba(200,60,60,0.12); color:#b03030; }
+
+.prices-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+.price-card { background:var(--cream2); border-radius:12px; padding:14px; border:1px solid var(--border); }
+.price-label { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px; }
+.price-value { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:var(--brown2); }
+.price-time { font-size:11px; color:var(--muted); margin-top:4px; }
+
+.tags-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+.tag { padding:4px 10px; border-radius:8px; background:var(--brown); color:var(--cream); font-size:12px; font-weight:500; }
+
+.btn-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+.btn { padding:13px; border-radius:12px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; border:none; transition:opacity 0.15s; text-align:center; }
+.btn:active { opacity:0.8; }
+.btn-primary { background:var(--brown); color:var(--cream); }
+.btn-secondary { background:var(--cream2); color:var(--brown); border:1.5px solid var(--border); }
+.btn-caramel { background:var(--caramel); color:#fff; }
+.btn-full { grid-column:1/-1; }
+
+.form-label { font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:6px; display:block; }
+.form-input { width:100%; background:var(--cream2); border:1.5px solid var(--border); border-radius:10px; padding:12px 14px; font-family:'DM Sans',sans-serif; font-size:15px; color:var(--brown); margin-bottom:12px; outline:none; }
+.form-input:focus { border-color:var(--caramel); }
+textarea.form-input { resize:none; }
+
+.star-selector { display:flex; gap:6px; margin-bottom:14px; }
+.star-sel { font-size:28px; cursor:pointer; opacity:0.3; transition:opacity 0.15s; }
+.star-sel.selected { opacity:1; }
+
+.nearby-list { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+.nearby-item { background:white; border-radius:14px; padding:14px; border:1px solid var(--border); display:flex; align-items:center; gap:12px; cursor:pointer; box-shadow:0 1px 6px rgba(26,10,0,0.06); }
+.nearby-icon { width:42px; height:42px; border-radius:10px; background:var(--brown); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.nearby-info { flex:1; }
+.nearby-name { font-family:'Playfair Display',serif; font-weight:700; font-size:15px; margin-bottom:2px; }
+.nearby-sub { font-size:12px; color:var(--muted); }
+.nearby-right { text-align:right; flex-shrink:0; }
+.nearby-price { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--brown2); }
+.nearby-stars { font-size:11px; color:var(--gold); }
+
+.scroll-view { overflow-y:auto; height:100%; padding:16px; }
+
+.bottom-nav { height:62px; background:var(--brown); display:grid; grid-template-columns:repeat(3,1fr); flex-shrink:0; z-index:100; }
+.nav-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; color:rgba(245,239,224,0.45); font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+.nav-item.active { color:var(--caramel2); }
+.nav-icon { font-size:20px; }
+
+.toast { position:fixed; bottom:80px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--brown); color:var(--cream); padding:10px 22px; border-radius:22px; font-family:'DM Sans',sans-serif; font-weight:600; font-size:14px; z-index:500; opacity:0; transition:all 0.25s; white-space:nowrap; border:1px solid var(--caramel); }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+.loading { display:flex; align-items:center; justify-content:center; height:100%; color:var(--muted); font-size:14px; }
+.empty-state { text-align:center; padding:40px 20px; color:var(--muted); }
+.empty-state div { font-size:40px; margin-bottom:12px; }
+
+.hidden { display:none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Coff<span>IE</span></div>
+    <div class="logo-sub">gas for the soul ☕</div>
+  </div>
+  <div class="header-right">
+    <div class="icon-btn" onclick="showReportSheet()">＋</div>
+    <div class="icon-btn" onclick="locateUser()">⊕</div>
+  </div>
+</header>
+
+<!-- MAP VIEW -->
+<div id="view-map" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+  <div class="filter-bar">
+    <div class="chip active" onclick="setChip(this,'all')">☕ All</div>
+    <div class="chip" onclick="setChip(this,'indie')">🏠 Indie</div>
+    <div class="chip" onclick="setChip(this,'chain')">🔗 Chains</div>
+    <div class="chip" onclick="setChip(this,'cheap')">💰 Cheapest</div>
+    <div class="chip" onclick="setChip(this,'open')">🟢 Open Now</div>
+  </div>
+  <div class="map-wrap">
+    <div class="map-search">
+      <span style="color:var(--muted);font-size:16px;">🔍</span>
+      <input id="search-input" placeholder="Where's the good stuff?…" oninput="filterMarkers(this.value)">
+    </div>
+    <div id="map"></div>
+  </div>
+</div>
+
+<!-- NEARBY VIEW -->
+<div id="view-nearby" class="hidden" style="flex:1;overflow-y:auto;">
+  <div class="scroll-view">
+    <div class="section-title">📍 Around You</div>
+    <div id="nearby-list" class="nearby-list">
+      <div class="loading">Loading cafés…</div>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMIT VIEW -->
+<div id="view-submit" class="hidden" style="flex:1;overflow-y:auto;">
+  <div class="scroll-view">
+    <div class="section-title">✍️ Add a Café or Price</div>
+    <label class="form-label">Café Name</label>
+    <input class="form-input" id="sub-name" placeholder="e.g. 3fe Coffee">
+    <label class="form-label">Address</label>
+    <input class="form-input" id="sub-address" placeholder="e.g. Grand Canal St, Dublin">
+    <label class="form-label">Type</label>
+    <select class="form-input" id="sub-type" style="appearance:none;">
+      <option value="indie">Indie café</option>
+      <option value="chain">Chain (Costa, Starbucks…)</option>
+      <option value="petrol">Petrol station</option>
+    </select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div>
+        <label class="form-label">Flat White (€)</label>
+        <input class="form-input" type="number" step="0.10" id="sub-fw" placeholder="3.50">
+      </div>
+      <div>
+        <label class="form-label">Americano (€)</label>
+        <input class="form-input" type="number" step="0.10" id="sub-am" placeholder="2.90">
+      </div>
+    </div>
+    <label class="form-label">Your Rating</label>
+    <div class="star-selector" id="sub-stars">
+      <div class="star-sel" onclick="setSubStar(1)">★</div>
+      <div class="star-sel" onclick="setSubStar(2)">★</div>
+      <div class="star-sel" onclick="setSubStar(3)">★</div>
+      <div class="star-sel" onclick="setSubStar(4)">★</div>
+      <div class="star-sel" onclick="setSubStar(5)">★</div>
+    </div>
+    <label class="form-label">Review (optional)</label>
+    <textarea class="form-input" id="sub-review" rows="3" placeholder="Tell people what you think…"></textarea>
+    <button class="btn btn-primary btn-full" onclick="submitCafe()" style="margin-top:4px;">Submit ☕</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-item active" onclick="switchView('map',this)"><div class="nav-icon">🗺️</div>Map</div>
+  <div class="nav-item" onclick="switchView('nearby',this)"><div class="nav-icon">📍</div>Nearby</div>
+  <div class="nav-item" onclick="switchView('submit',this)"><div class="nav-icon">＋</div>Add</div>
+</nav>
+
+<!-- OVERLAYS -->
+<div class="sheet-overlay" id="overlay" onclick="closeSheet()"></div>
+
+<!-- CAFÉ DETAIL SHEET -->
+<div class="bottom-sheet" id="cafe-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-content" id="cafe-content"></div>
+</div>
+
+<!-- REPORT PRICE SHEET -->
+<div class="bottom-sheet" id="report-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-content">
+    <div class="section-title">📝 Report a Price</div>
+    <label class="form-label">Café</label>
+    <select class="form-input" id="report-cafe" style="appearance:none;"></select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div>
+        <label class="form-label">Flat White (€)</label>
+        <input class="form-input" type="number" step="0.10" id="report-fw" placeholder="3.50">
+      </div>
+      <div>
+        <label class="form-label">Americano (€)</label>
+        <input class="form-input" type="number" step="0.10" id="report-am" placeholder="2.90">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeSheet()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitPrice()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ---- SUPABASE INIT ----
+const SUPABASE_URL = 'https://ufqlbzxgclgkzhtknvgj.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_bxr5571LFdx6g1vxQrC7WA_ijowQpAp';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ---- STATE ----
+let allCafes = [];
+let markers = [];
+let activeFilter = 'all';
+let selectedStar = 0;
+let subStar = 0;
+
+// ---- MAP ----
+const map = L.map('map', {zoomControl:false}).setView([53.35, -7.95], 7);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap', maxZoom:19}).addTo(map);
+L.control.zoom({position:'bottomright'}).addTo(map);
+
+// ---- LOAD CAFÉS ----
+async function loadCafes() {
+  const { data, error } = await db.from('cafes').select(`
+    *,
+    prices(drink, price, created_at),
+    reviews(rating, comment, created_at)
+  `).order('name');
+
+  if (error) { console.error(error); return; }
+  allCafes = data || [];
+  renderMarkers(allCafes);
+  renderNearby(allCafes);
+  populateReportSelect(allCafes);
+}
+
+// ---- MARKERS ----
+function renderMarkers(cafes) {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+
+  cafes.forEach(c => {
+    if (!c.lat || !c.lng) return;
+    const price = getLatestPrice(c, 'flat white');
+    const label = price ? `☕ €${price}` : `☕ ${c.name.split(' ')[0]}`;
+    const cls = c.featured ? 'featured' : '';
+    const icon = L.divIcon({
+      className:'',
+      html:`<div class="coffee-marker ${cls}">${label}</div>`,
+      iconAnchor:[40,14]
+    });
+    const marker = L.marker([c.lat, c.lng], {icon}).addTo(map);
+    marker.on('click', () => showCafe(c));
+    markers.push(marker);
+  });
+}
+
+function getLatestPrice(cafe, drink) {
+  if (!cafe.prices || !cafe.prices.length) return null;
+  const match = cafe.prices
+    .filter(p => p.drink.toLowerCase().includes(drink.toLowerCase()))
+    .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+  return match.length ? parseFloat(match[0].price).toFixed(2) : null;
+}
+
+function getAvgRating(cafe) {
+  if (!cafe.reviews || !cafe.reviews.length) return null;
+  const avg = cafe.reviews.reduce((s,r) => s + r.rating, 0) / cafe.reviews.length;
+  return avg.toFixed(1);
+}
+
+function stars(r) {
+  if (!r) return '☆☆☆☆☆';
+  const full = Math.round(r);
+  return '★'.repeat(full) + '☆'.repeat(5 - full);
+}
+
+function timeAgo(ts) {
+  const diff = Date.now() - new Date(ts).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs/24)}d ago`;
+}
+
+// ---- NEARBY LIST ----
+function renderNearby(cafes) {
+  const list = document.getElementById('nearby-list');
+  if (!cafes.length) {
+    list.innerHTML = `<div class="empty-state"><div>☕</div>No cafés yet — be the first to add one!</div>`;
+    return;
+  }
+  list.innerHTML = cafes.map(c => {
+    const price = getLatestPrice(c, 'flat white');
+    const rating = getAvgRating(c);
+    return `
+      <div class="nearby-item" onclick="showCafe(allCafes.find(x=>x.id==='${c.id}'))">
+        <div class="nearby-icon">☕</div>
+        <div class="nearby-info">
+          <div class="nearby-name">${c.name}</div>
+          <div class="nearby-sub">${c.address}</div>
+        </div>
+        <div class="nearby-right">
+          <div class="nearby-price">${price ? '€'+price : '—'}</div>
+          <div class="nearby-stars">${rating ? stars(rating)+' '+rating : '☆ No reviews'}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ---- REPORT SELECT ----
+function populateReportSelect(cafes) {
+  const sel = document.getElementById('report-cafe');
+  sel.innerHTML = cafes.map(c => `<option value="${c.id}">${c.name} — ${c.address}</option>`).join('');
+}
+
+// ---- CAFÉ DETAIL ----
+function showCafe(c) {
+  const fw = getLatestPrice(c, 'flat white');
+  const am = getLatestPrice(c, 'americano');
+  const rating = getAvgRating(c);
+  const reviewCount = c.reviews ? c.reviews.length : 0;
+  const latestPrice = c.prices && c.prices.length ? c.prices.sort((a,b) => new Date(b.created_at)-new Date(a.created_at))[0] : null;
+
+  document.getElementById('cafe-content').innerHTML = `
+    <div class="cafe-name">${c.name}</div>
+    <div class="cafe-meta">
+      <span class="open-badge open">● Open</span>
+      <span>${c.address}</span>
+      ${c.featured ? '<span style="background:rgba(212,168,67,0.2);color:#8a6200;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">★ Featured</span>' : ''}
+    </div>
+    ${rating ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="color:var(--gold);font-size:16px;">${stars(rating)}</span><strong>${rating}</strong><span style="font-size:13px;color:var(--muted);">(${reviewCount} review${reviewCount!==1?'s':''})</span></div>` : '<div style="font-size:13px;color:var(--muted);margin-bottom:14px;">No reviews yet — be first!</div>'}
+    <div class="prices-grid">
+      <div class="price-card">
+        <div class="price-label">☕ Flat White</div>
+        <div class="price-value">${fw ? '€'+fw : '—'}</div>
+        ${latestPrice ? `<div class="price-time">Updated ${timeAgo(latestPrice.created_at)}</div>` : '<div class="price-time">Not yet reported</div>'}
+      </div>
+      <div class="price-card">
+        <div class="price-label">🖤 Americano</div>
+        <div class="price-value">${am ? '€'+am : '—'}</div>
+        ${latestPrice ? `<div class="price-time">Updated ${timeAgo(latestPrice.created_at)}</div>` : '<div class="price-time">Not yet reported</div>'}
+      </div>
+    </div>
+    ${c.reviews && c.reviews.length ? `
+      <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Latest Review</div>
+      <div style="background:var(--cream2);border-radius:12px;padding:12px;margin-bottom:14px;border:1px solid var(--border);font-size:13px;">
+        <span style="color:var(--gold);">${stars(c.reviews[0].rating)}</span>
+        <span style="margin-left:8px;color:var(--muted);">${timeAgo(c.reviews[0].created_at)}</span>
+        ${c.reviews[0].comment ? `<p style="margin-top:6px;">${c.reviews[0].comment}</p>` : ''}
+      </div>` : ''}
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="prefillReport('${c.id}'); closeSheet(); setTimeout(()=>openSheet('report-sheet'),50);">📝 Report Price</button>
+      <button class="btn btn-primary" onclick="openMaps(${c.lat},${c.lng},'${c.name}')">🗺️ Directions</button>
+    </div>
+    <button class="btn btn-caramel btn-full" onclick="showToast('Gas — added to your list! 📍')">+ Add to My List</button>
+  `;
+  openSheet('cafe-sheet');
+}
+
+function openMaps(lat, lng, name) {
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_name=${encodeURIComponent(name)}`);
+}
+
+// ---- SUBMIT CAFÉ ----
+let subStarVal = 0;
+function setSubStar(n) {
+  subStarVal = n;
+  document.querySelectorAll('#sub-stars .star-sel').forEach((s,i) => s.classList.toggle('selected', i<n));
+}
+
+async function submitCafe() {
+  const name = document.getElementById('sub-name').value.trim();
+  const address = document.getElementById('sub-address').value.trim();
+  const type = document.getElementById('sub-type').value;
+  const fw = document.getElementById('sub-fw').value;
+  const am = document.getElementById('sub-am').value;
+  const review = document.getElementById('sub-review').value.trim();
+
+  if (!name || !address) { showToast('Please enter a name and address'); return; }
+
+  // Geocode address using Nominatim (free)
+  showToast('Finding location…');
+  let lat = 53.35, lng = -6.26;
+  try {
+    const geo = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address+', Ireland')}&format=json&limit=1`);
+    const geoData = await geo.json();
+    if (geoData.length) { lat = parseFloat(geoData[0].lat); lng = parseFloat(geoData[0].lon); }
+  } catch(e) {}
+
+  const { data: cafe, error } = await db.from('cafes').insert({ name, address, lat, lng, type }).select().single();
+  if (error) { showToast('Error adding café — try again'); console.error(error); return; }
+
+  if (fw) await db.from('prices').insert({ cafe_id: cafe.id, drink: 'flat white', price: parseFloat(fw) });
+  if (am) await db.from('prices').insert({ cafe_id: cafe.id, drink: 'americano', price: parseFloat(am) });
+  if (subStarVal > 0) await db.from('reviews').insert({ cafe_id: cafe.id, rating: subStarVal, comment: review || null });
+
+  showToast('Legend! Café added ☕');
+  document.getElementById('sub-name').value = '';
+  document.getElementById('sub-address').value = '';
+  document.getElementById('sub-fw').value = '';
+  document.getElementById('sub-am').value = '';
+  document.getElementById('sub-review').value = '';
+  subStarVal = 0;
+  document.querySelectorAll('#sub-stars .star-sel').forEach(s => s.classList.remove('selected'));
+  loadCafes();
+}
+
+// ---- SUBMIT PRICE ----
+function prefillReport(cafeId) {
+  document.getElementById('report-cafe').value = cafeId;
+}
+
+async function submitPrice() {
+  const cafeId = document.getElementById('report-cafe').value;
+  const fw = document.getElementById('report-fw').value;
+  const am = document.getElementById('report-am').value;
+  if (!fw && !am) { showToast('Enter at least one price'); return; }
+  if (fw) await db.from('prices').insert({ cafe_id: cafeId, drink: 'flat white', price: parseFloat(fw) });
+  if (am) await db.from('prices').insert({ cafe_id: cafeId, drink: 'americano', price: parseFloat(am) });
+  closeSheet();
+  showToast('Legend! Price submitted ☕');
+  document.getElementById('report-fw').value = '';
+  document.getElementById('report-am').value = '';
+  loadCafes();
+}
+
+// ---- FILTER ----
+function setChip(el, filter) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  activeFilter = filter;
+  let filtered = allCafes;
+  if (filter === 'indie') filtered = allCafes.filter(c => c.type === 'indie');
+  if (filter === 'chain') filtered = allCafes.filter(c => c.type === 'chain');
+  if (filter === 'cheap') filtered = [...allCafes].sort((a,b) => {
+    const pa = parseFloat(getLatestPrice(a,'flat white')) || 99;
+    const pb = parseFloat(getLatestPrice(b,'flat white')) || 99;
+    return pa - pb;
+  });
+  renderMarkers(filtered);
+}
+
+function filterMarkers(query) {
+  if (!query) { renderMarkers(allCafes); return; }
+  const q = query.toLowerCase();
+  renderMarkers(allCafes.filter(c => c.name.toLowerCase().includes(q) || c.address.toLowerCase().includes(q)));
+}
+
+// ---- LOCATE ----
+function locateUser() {
+  if (!navigator.geolocation) { showToast('Location not supported'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    map.setView([pos.coords.latitude, pos.coords.longitude], 14);
+    showToast('📍 Located!');
+  }, () => showToast('Could not get location'));
+}
+
+// ---- SHEETS ----
+function openSheet(id) {
+  document.getElementById('overlay').classList.add('visible');
+  document.getElementById(id).classList.add('open');
+}
+function closeSheet() {
+  document.getElementById('overlay').classList.remove('visible');
+  document.querySelectorAll('.bottom-sheet').forEach(s => s.classList.remove('open'));
+}
+function showReportSheet() { openSheet('report-sheet'); }
+
+// ---- VIEW SWITCHING ----
+function switchView(name, el) {
+  ['map','nearby','submit'].forEach(v => {
+    document.getElementById('view-'+v).classList.toggle('hidden', v!==name);
+  });
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+// ---- TOAST ----
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ---- INIT ----
+loadCafes();
+</script>
+</body>
+</html>

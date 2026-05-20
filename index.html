@@ -242,9 +242,11 @@ textarea.form-input { resize:none; }
 <script>
 // ---- SUPABASE INIT ----
 const SUPABASE_URL = 'https://ufqlbzxgclgkzhtknvgj.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_bxr5571LFdx6g1vxQrC7WA_ijowQpAp';
+const SUPABASE_KEY = 'sb_publishable_bxrS571LFdx6g1vxQrC7WA_1jowQpAp';
 const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+const db = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  global: { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+});
 
 // ---- STATE ----
 let allCafes = [];

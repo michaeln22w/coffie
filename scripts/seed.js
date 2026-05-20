@@ -2,7 +2,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 // ---- YOUR KEYS ----
 const SUPABASE_URL = 'https://ufqlbzxgclgkzhtknvgj.supabase.co';
-const SUPABASE_KEY = 'sb_secret_4SS6bwTI2bgMf1mJCzbxfQ_JvLw3jt_';
+const SUPABASE_KEY = 'YOUR_SECRET_KEY_HERE';
 const GOOGLE_KEY = 'AIzaSyBpc1VsFUdzCrUzeSYzaO2ofk--DiN9roo';
 
 // Irish cities to search across

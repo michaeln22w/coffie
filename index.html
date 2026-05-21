@@ -65,7 +65,7 @@ header { background:var(--brown); padding:0 16px; height:58px; display:flex; ali
 .marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div { background:var(--brown2) !important; color:var(--cream) !important; font-family:'DM Sans',sans-serif; font-weight:700; font-size:13px; }
 
 /* marker mode pill */
-.mode-pill { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); z-index:50; display:flex; background:rgba(59,31,14,0.92); border:1px solid rgba(255,255,255,0.15); border-radius:30px; padding:4px; gap:2px; backdrop-filter:blur(6px); }
+.mode-pill { position:fixed; bottom:70px; left:50%; transform:translateX(-50%); z-index:150; display:flex; background:rgba(59,31,14,0.92); border:1px solid rgba(255,255,255,0.15); border-radius:30px; padding:4px; gap:2px; backdrop-filter:blur(6px); box-shadow:0 4px 16px rgba(26,10,0,0.35); pointer-events:all; }
 .mode-btn { padding:5px 13px; border-radius:24px; font-size:12px; font-weight:600; color:rgba(245,239,224,0.6); cursor:pointer; white-space:nowrap; transition:all 0.15s; border:none; background:transparent; }
 .mode-btn.active { background:var(--caramel2); color:var(--brown); }
 
@@ -81,9 +81,9 @@ header { background:var(--brown); padding:0 16px; height:58px; display:flex; ali
 .review-tab { flex:1; padding:8px; text-align:center; font-size:12px; font-weight:600; cursor:pointer; background:transparent; color:var(--muted); border:none; transition:all 0.15s; }
 .review-tab.active { background:var(--brown); color:var(--cream); }
 
-.sheet-overlay { position:fixed; inset:0; background:rgba(26,10,0,0.45); z-index:200; opacity:0; pointer-events:none; transition:opacity 0.25s; backdrop-filter:blur(2px); }
+.sheet-overlay { position:fixed; inset:0; background:rgba(26,10,0,0.45); z-index:900; opacity:0; pointer-events:none; transition:opacity 0.25s; backdrop-filter:blur(2px); }
 .sheet-overlay.visible { opacity:1; pointer-events:all; }
-.bottom-sheet { position:fixed; bottom:0; left:0; right:0; background:var(--cream); border-radius:22px 22px 0 0; border-top:2px solid var(--caramel); z-index:300; transform:translateY(100%); transition:transform 0.32s cubic-bezier(0.32,0.72,0,1); max-height:88dvh; overflow-y:auto; }
+.bottom-sheet { position:fixed; bottom:0; left:0; right:0; background:var(--cream); border-radius:22px 22px 0 0; border-top:2px solid var(--caramel); z-index:1000; transform:translateY(100%); transition:transform 0.32s cubic-bezier(0.32,0.72,0,1); max-height:88dvh; overflow-y:auto; }
 .bottom-sheet.open { transform:translateY(0); }
 .sheet-handle { width:40px; height:4px; background:var(--cream2); border-radius:2px; margin:12px auto 0; }
 .sheet-content { padding:18px 16px 24px; }
@@ -176,14 +176,15 @@ textarea.form-input { resize:none; }
       <input id="search-input" placeholder="Where's the good stuff?…" oninput="filterMarkers(this.value)">
     </div>
     <div id="map"></div>
-    <!-- Marker mode pill -->
-    <div class="mode-pill">
-      <button class="mode-btn active" onclick="setMarkerMode('default',this)">Default</button>
-      <button class="mode-btn" onclick="setMarkerMode('hours',this)">🟢 Hours</button>
-      <button class="mode-btn" onclick="setMarkerMode('rating',this)">⭐ Rating</button>
-      <button class="mode-btn" onclick="setMarkerMode('price',this)">💰 Price</button>
-    </div>
   </div>
+</div>
+
+<!-- Marker mode pill — fixed, outside map-wrap -->
+<div class="mode-pill" id="mode-pill">
+  <button class="mode-btn active" onclick="setMarkerMode('default',this)">Default</button>
+  <button class="mode-btn" onclick="setMarkerMode('hours',this)">🟢 Hours</button>
+  <button class="mode-btn" onclick="setMarkerMode('rating',this)">⭐ Rating</button>
+  <button class="mode-btn" onclick="setMarkerMode('price',this)">💰 Price</button>
 </div>
 
 <!-- NEARBY VIEW -->
@@ -682,6 +683,8 @@ function switchView(name, el) {
   });
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (el) el.classList.add('active');
+  // only show mode pill on map view
+  document.getElementById('mode-pill').style.display = name === 'map' ? 'flex' : 'none';
 }
 
 // ---- TOAST ----

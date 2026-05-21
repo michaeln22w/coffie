@@ -65,7 +65,7 @@ header { background:var(--brown); padding:0 16px; height:58px; display:flex; ali
 .marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div { background:var(--brown2) !important; color:var(--cream) !important; font-family:'DM Sans',sans-serif; font-weight:700; font-size:13px; }
 
 /* marker mode pill */
-.mode-pill { position:fixed; bottom:70px; left:50%; transform:translateX(-50%); z-index:150; display:flex; background:rgba(59,31,14,0.92); border:1px solid rgba(255,255,255,0.15); border-radius:30px; padding:4px; gap:2px; backdrop-filter:blur(6px); box-shadow:0 4px 16px rgba(26,10,0,0.35); pointer-events:all; }
+.mode-pill { position:fixed; bottom:72px; left:50%; transform:translateX(-50%); z-index:500; display:flex; background:rgba(59,31,14,0.92); border:1px solid rgba(255,255,255,0.15); border-radius:30px; padding:4px; gap:2px; backdrop-filter:blur(6px); box-shadow:0 4px 16px rgba(26,10,0,0.35); pointer-events:all; }
 .mode-btn { padding:5px 13px; border-radius:24px; font-size:12px; font-weight:600; color:rgba(245,239,224,0.6); cursor:pointer; white-space:nowrap; transition:all 0.15s; border:none; background:transparent; }
 .mode-btn.active { background:var(--caramel2); color:var(--brown); }
 
@@ -696,6 +696,7 @@ function showToast(msg) {
 }
 
 // ---- INIT ----
+document.getElementById('mode-pill').style.display = 'flex';
 loadCafes();
 </script>
 </body>

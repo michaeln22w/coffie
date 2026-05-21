@@ -8,7 +8,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
@@ -50,6 +53,33 @@ header { background:var(--brown); padding:0 16px; height:58px; display:flex; ali
 
 .coffee-marker { background:var(--brown); border:2px solid var(--caramel); border-radius:22px; padding:4px 9px 4px 7px; font-family:'DM Sans',sans-serif; font-weight:600; font-size:12px; color:var(--cream); white-space:nowrap; cursor:pointer; box-shadow:0 2px 10px rgba(26,10,0,0.3); display:flex; align-items:center; gap:4px; }
 .coffee-marker.featured { border-color:var(--gold); background:var(--brown2); }
+.coffee-marker.m-open   { background:#2d7a2d; border-color:#4caf50; }
+.coffee-marker.m-closed { background:#b03030; border-color:#e05050; }
+.coffee-marker.m-unknown{ background:#666;    border-color:#999; }
+.coffee-marker.m-high   { background:#b8860b; border-color:var(--gold); }
+.coffee-marker.m-mid    { background:#c8843a; border-color:var(--caramel2); }
+.coffee-marker.m-low    { background:#555;    border-color:#888; }
+
+/* cluster bubbles */
+.marker-cluster-small,.marker-cluster-medium,.marker-cluster-large { background:rgba(59,31,14,0.18) !important; }
+.marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div { background:var(--brown2) !important; color:var(--cream) !important; font-family:'DM Sans',sans-serif; font-weight:700; font-size:13px; }
+
+/* marker mode pill */
+.mode-pill { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); z-index:50; display:flex; background:rgba(59,31,14,0.92); border:1px solid rgba(255,255,255,0.15); border-radius:30px; padding:4px; gap:2px; backdrop-filter:blur(6px); }
+.mode-btn { padding:5px 13px; border-radius:24px; font-size:12px; font-weight:600; color:rgba(245,239,224,0.6); cursor:pointer; white-space:nowrap; transition:all 0.15s; border:none; background:transparent; }
+.mode-btn.active { background:var(--caramel2); color:var(--brown); }
+
+/* drink price grid */
+.drinks-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+.drink-card { background:var(--cream2); border-radius:10px; padding:10px 12px; border:1px solid var(--border); }
+.drink-label { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px; }
+.drink-value { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--brown2); }
+.drink-time { font-size:10px; color:var(--muted); margin-top:2px; }
+
+/* review tabs */
+.review-tabs { display:flex; gap:0; margin-bottom:10px; border:1.5px solid var(--border); border-radius:10px; overflow:hidden; }
+.review-tab { flex:1; padding:8px; text-align:center; font-size:12px; font-weight:600; cursor:pointer; background:transparent; color:var(--muted); border:none; transition:all 0.15s; }
+.review-tab.active { background:var(--brown); color:var(--cream); }
 
 .sheet-overlay { position:fixed; inset:0; background:rgba(26,10,0,0.45); z-index:200; opacity:0; pointer-events:none; transition:opacity 0.25s; backdrop-filter:blur(2px); }
 .sheet-overlay.visible { opacity:1; pointer-events:all; }
@@ -146,6 +176,13 @@ textarea.form-input { resize:none; }
       <input id="search-input" placeholder="Where's the good stuff?…" oninput="filterMarkers(this.value)">
     </div>
     <div id="map"></div>
+    <!-- Marker mode pill -->
+    <div class="mode-pill">
+      <button class="mode-btn active" onclick="setMarkerMode('default',this)">Default</button>
+      <button class="mode-btn" onclick="setMarkerMode('hours',this)">🟢 Hours</button>
+      <button class="mode-btn" onclick="setMarkerMode('rating',this)">⭐ Rating</button>
+      <button class="mode-btn" onclick="setMarkerMode('price',this)">💰 Price</button>
+    </div>
   </div>
 </div>
 
@@ -174,14 +211,10 @@ textarea.form-input { resize:none; }
       <option value="petrol">Petrol station</option>
     </select>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div>
-        <label class="form-label">Flat White (€)</label>
-        <input class="form-input" type="number" step="0.10" id="sub-fw" placeholder="3.50">
-      </div>
-      <div>
-        <label class="form-label">Americano (€)</label>
-        <input class="form-input" type="number" step="0.10" id="sub-am" placeholder="2.90">
-      </div>
+      <div><label class="form-label">Flat White (€)</label><input class="form-input" type="number" step="0.10" id="sub-fw" placeholder="3.50"></div>
+      <div><label class="form-label">Americano (€)</label><input class="form-input" type="number" step="0.10" id="sub-am" placeholder="2.90"></div>
+      <div><label class="form-label">Latte (€)</label><input class="form-input" type="number" step="0.10" id="sub-latte" placeholder="3.80"></div>
+      <div><label class="form-label">Cappuccino (€)</label><input class="form-input" type="number" step="0.10" id="sub-cap" placeholder="3.60"></div>
     </div>
     <label class="form-label">Your Rating</label>
     <div class="star-selector" id="sub-stars">
@@ -217,18 +250,22 @@ textarea.form-input { resize:none; }
 <div class="bottom-sheet" id="report-sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-content">
-    <div class="section-title">📝 Report a Price</div>
+    <div class="section-title">📝 Report Prices</div>
     <label class="form-label">Café</label>
     <select class="form-input" id="report-cafe" style="appearance:none;"></select>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div>
-        <label class="form-label">Flat White (€)</label>
-        <input class="form-input" type="number" step="0.10" id="report-fw" placeholder="3.50">
-      </div>
-      <div>
-        <label class="form-label">Americano (€)</label>
-        <input class="form-input" type="number" step="0.10" id="report-am" placeholder="2.90">
-      </div>
+      <div><label class="form-label">Flat White (€)</label><input class="form-input" type="number" step="0.10" id="report-fw" placeholder="3.50"></div>
+      <div><label class="form-label">Americano (€)</label><input class="form-input" type="number" step="0.10" id="report-am" placeholder="2.90"></div>
+      <div><label class="form-label">Latte (€)</label><input class="form-input" type="number" step="0.10" id="report-latte" placeholder="3.80"></div>
+      <div><label class="form-label">Cappuccino (€)</label><input class="form-input" type="number" step="0.10" id="report-cap" placeholder="3.60"></div>
+      <div><label class="form-label">Espresso (€)</label><input class="form-input" type="number" step="0.10" id="report-esp" placeholder="2.50"></div>
+      <div><label class="form-label">Cortado (€)</label><input class="form-input" type="number" step="0.10" id="report-cort" placeholder="3.00"></div>
+      <div><label class="form-label">Filter Coffee (€)</label><input class="form-input" type="number" step="0.10" id="report-filter" placeholder="2.80"></div>
+      <div><label class="form-label">Matcha Latte (€)</label><input class="form-input" type="number" step="0.10" id="report-matcha" placeholder="4.50"></div>
+      <div><label class="form-label">Hot Choc (€)</label><input class="form-input" type="number" step="0.10" id="report-hc" placeholder="3.80"></div>
+      <div><label class="form-label">Tea (€)</label><input class="form-input" type="number" step="0.10" id="report-tea" placeholder="2.50"></div>
+      <div><label class="form-label">Croissant (€)</label><input class="form-input" type="number" step="0.10" id="report-croissant" placeholder="3.00"></div>
+      <div><label class="form-label">Pastry/Treat (€)</label><input class="form-input" type="number" step="0.10" id="report-pastry" placeholder="3.50"></div>
     </div>
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="closeSheet()">Cancel</button>
@@ -241,18 +278,19 @@ textarea.form-input { resize:none; }
 
 <script>
 // ---- SUPABASE INIT ----
-const Sconst SUPABASE_URL = 'https://ufqlbzxgclgkzhtknvgj.supabase.co';
+const SUPABASE_URL = 'https://ufqlbzxgclgkzhtknvgj.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmcWxienhnY2xna3podGtudmdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyODgyODAsImV4cCI6MjA5NDg2NDI4MH0.jR_N2uVA6Mrm0xStfKE_scVgoyvgx_xLZ-INsQALbAE';
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
-});
 
 // ---- STATE ----
 let allCafes = [];
-let markers = [];
+let markerLayer = null;
 let activeFilter = 'all';
+let markerMode = 'default'; // 'default' | 'hours' | 'rating' | 'price'
 let selectedStar = 0;
 let subStar = 0;
+let activeReviewTab = 'app'; // 'app' | 'google'
 
 // ---- MAP ----
 const map = L.map('map', {zoomControl:false}).setView([53.35, -7.95], 7);
@@ -274,25 +312,94 @@ async function loadCafes() {
   populateReportSelect(allCafes);
 }
 
+// ---- MARKER MODE ----
+function setMarkerMode(mode, btn) {
+  markerMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // re-render current filtered set
+  const filtered = getCurrentFiltered();
+  renderMarkers(filtered);
+}
+
+function getCurrentFiltered() {
+  if (activeFilter === 'indie') return allCafes.filter(c => c.type === 'indie');
+  if (activeFilter === 'chain') return allCafes.filter(c => c.type === 'chain');
+  if (activeFilter === 'cheap') return [...allCafes].sort((a,b) => {
+    const pa = parseFloat(getLatestPrice(a,'flat white')) || 99;
+    const pb = parseFloat(getLatestPrice(b,'flat white')) || 99;
+    return pa - pb;
+  });
+  if (activeFilter === 'open') return allCafes.filter(c => isOpenNow(c));
+  return allCafes;
+}
+
+function isOpenNow(cafe) {
+  // We don't pull opening_hours from DB currently, so stub as unknown
+  return null; // null = unknown
+}
+
+function getMarkerClass(cafe) {
+  if (markerMode === 'hours') {
+    const open = isOpenNow(cafe);
+    if (open === true)  return 'm-open';
+    if (open === false) return 'm-closed';
+    return 'm-unknown';
+  }
+  if (markerMode === 'rating') {
+    const r = parseFloat(getAvgRating(cafe));
+    if (!r) return 'm-low';
+    if (r >= 4.5) return 'm-high';
+    if (r >= 3.5) return 'm-mid';
+    return 'm-low';
+  }
+  if (markerMode === 'price') {
+    const p = parseFloat(getLatestPrice(cafe, 'flat white'));
+    if (!p) return 'm-unknown';
+    if (p <= 3.50) return 'm-open';   // cheap = green
+    if (p <= 4.20) return 'm-mid';    // mid = caramel
+    return 'm-closed';                // expensive = red
+  }
+  return cafe.featured ? 'featured' : '';
+}
+
 // ---- MARKERS ----
 function renderMarkers(cafes) {
-  markers.forEach(m => map.removeLayer(m));
-  markers = [];
+  if (markerLayer) map.removeLayer(markerLayer);
+
+  markerLayer = L.markerClusterGroup({
+    showCoverageOnHover: false,
+    maxClusterRadius: 40,
+    spiderfyOnMaxZoom: true,
+    disableClusteringAtZoom: 16,
+  });
 
   cafes.forEach(c => {
     if (!c.lat || !c.lng) return;
     const price = getLatestPrice(c, 'flat white');
-    const label = price ? `☕ €${price}` : `☕ ${c.name.split(' ')[0]}`;
-    const cls = c.featured ? 'featured' : '';
+    const modeClass = getMarkerClass(c);
+
+    let label;
+    if (markerMode === 'rating') {
+      const r = getAvgRating(c);
+      label = r ? `⭐ ${r}` : `☕ ${c.name.split(' ')[0]}`;
+    } else if (markerMode === 'price') {
+      label = price ? `€${price}` : `☕ ${c.name.split(' ')[0]}`;
+    } else {
+      label = price ? `☕ €${price}` : `☕ ${c.name.split(' ')[0]}`;
+    }
+
     const icon = L.divIcon({
-      className:'',
-      html:`<div class="coffee-marker ${cls}">${label}</div>`,
-      iconAnchor:[40,14]
+      className: '',
+      html: `<div class="coffee-marker ${modeClass}">${label}</div>`,
+      iconAnchor: [40, 14]
     });
-    const marker = L.marker([c.lat, c.lng], {icon}).addTo(map);
+    const marker = L.marker([c.lat, c.lng], {icon});
     marker.on('click', () => showCafe(c));
-    markers.push(marker);
+    markerLayer.addLayer(marker);
   });
+
+  map.addLayer(markerLayer);
 }
 
 function getLatestPrice(cafe, drink) {
@@ -356,12 +463,57 @@ function populateReportSelect(cafes) {
 }
 
 // ---- CAFÉ DETAIL ----
+const DRINKS = [
+  { key: 'flat white',    label: '☕ Flat White' },
+  { key: 'americano',     label: '🖤 Americano' },
+  { key: 'latte',         label: '🥛 Latte' },
+  { key: 'cappuccino',    label: '☁️ Cappuccino' },
+  { key: 'espresso',      label: '⚡ Espresso' },
+  { key: 'cortado',       label: '🔸 Cortado' },
+  { key: 'filter coffee', label: '🫗 Filter' },
+  { key: 'matcha latte',  label: '🍵 Matcha' },
+  { key: 'hot chocolate', label: '🍫 Hot Choc' },
+  { key: 'tea',           label: '🫖 Tea' },
+  { key: 'croissant',     label: '🥐 Croissant' },
+  { key: 'pastry',        label: '🍰 Pastry' },
+];
+
 function showCafe(c) {
-  const fw = getLatestPrice(c, 'flat white');
-  const am = getLatestPrice(c, 'americano');
   const rating = getAvgRating(c);
   const reviewCount = c.reviews ? c.reviews.length : 0;
-  const latestPrice = c.prices && c.prices.length ? c.prices.sort((a,b) => new Date(b.created_at)-new Date(a.created_at))[0] : null;
+  const latestPrice = c.prices && c.prices.length
+    ? c.prices.sort((a,b) => new Date(b.created_at)-new Date(a.created_at))[0]
+    : null;
+
+  // Build drink price cards — only show drinks that have a price, plus first 4 as placeholders
+  const priceCards = DRINKS.map(d => {
+    const p = getLatestPrice(c, d.key);
+    return p ? `<div class="drink-card">
+      <div class="drink-label">${d.label}</div>
+      <div class="drink-value">€${p}</div>
+      <div class="drink-time">${latestPrice ? timeAgo(latestPrice.created_at) : 'reported'}</div>
+    </div>` : null;
+  }).filter(Boolean);
+
+  const drinksHtml = priceCards.length
+    ? `<div class="drinks-grid">${priceCards.join('')}</div>`
+    : `<div style="font-size:13px;color:var(--muted);margin-bottom:14px;padding:14px;background:var(--cream2);border-radius:12px;text-align:center;">No prices yet — be the first to report! 👇</div>`;
+
+  // App reviews
+  const appReviews = c.reviews && c.reviews.length
+    ? c.reviews.slice(0,3).map(r => `<div style="background:var(--cream2);border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid var(--border);font-size:13px;">
+        <span style="color:var(--gold);">${stars(r.rating)}</span>
+        <span style="margin-left:8px;color:var(--muted);">${timeAgo(r.created_at)}</span>
+        ${r.comment ? `<p style="margin-top:6px;">${r.comment}</p>` : ''}
+      </div>`).join('')
+    : `<div style="font-size:13px;color:var(--muted);padding:14px;text-align:center;">No CoffIE reviews yet — add one below!</div>`;
+
+  // Google reviews placeholder (would need Places API call — shows static prompt for now)
+  const googleReviews = c.google_place_id
+    ? `<div style="font-size:13px;color:var(--muted);padding:14px;text-align:center;">
+        <a href="https://search.google.com/local/reviews?placeid=${c.google_place_id}" target="_blank" style="color:var(--caramel);font-weight:600;">View on Google Maps ↗</a>
+       </div>`
+    : `<div style="font-size:13px;color:var(--muted);padding:14px;text-align:center;">No Google Place ID linked.</div>`;
 
   document.getElementById('cafe-content').innerHTML = `
     <div class="cafe-name">${c.name}</div>
@@ -370,26 +522,21 @@ function showCafe(c) {
       <span>${c.address}</span>
       ${c.featured ? '<span style="background:rgba(212,168,67,0.2);color:#8a6200;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">★ Featured</span>' : ''}
     </div>
-    ${rating ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="color:var(--gold);font-size:16px;">${stars(rating)}</span><strong>${rating}</strong><span style="font-size:13px;color:var(--muted);">(${reviewCount} review${reviewCount!==1?'s':''})</span></div>` : '<div style="font-size:13px;color:var(--muted);margin-bottom:14px;">No reviews yet — be first!</div>'}
-    <div class="prices-grid">
-      <div class="price-card">
-        <div class="price-label">☕ Flat White</div>
-        <div class="price-value">${fw ? '€'+fw : '—'}</div>
-        ${latestPrice ? `<div class="price-time">Updated ${timeAgo(latestPrice.created_at)}</div>` : '<div class="price-time">Not yet reported</div>'}
-      </div>
-      <div class="price-card">
-        <div class="price-label">🖤 Americano</div>
-        <div class="price-value">${am ? '€'+am : '—'}</div>
-        ${latestPrice ? `<div class="price-time">Updated ${timeAgo(latestPrice.created_at)}</div>` : '<div class="price-time">Not yet reported</div>'}
-      </div>
+    ${rating
+      ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="color:var(--gold);font-size:16px;">${stars(rating)}</span><strong>${rating}</strong><span style="font-size:13px;color:var(--muted);">(${reviewCount} review${reviewCount!==1?'s':''})</span></div>`
+      : '<div style="font-size:13px;color:var(--muted);margin-bottom:14px;">No reviews yet — be first!</div>'}
+
+    <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Prices</div>
+    ${drinksHtml}
+
+    <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Reviews</div>
+    <div class="review-tabs">
+      <button class="review-tab active" id="rtab-app" onclick="switchReviewTab('app','${c.id}')">☕ CoffIE</button>
+      <button class="review-tab" id="rtab-google" onclick="switchReviewTab('google','${c.id}')">🌐 Google</button>
     </div>
-    ${c.reviews && c.reviews.length ? `
-      <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Latest Review</div>
-      <div style="background:var(--cream2);border-radius:12px;padding:12px;margin-bottom:14px;border:1px solid var(--border);font-size:13px;">
-        <span style="color:var(--gold);">${stars(c.reviews[0].rating)}</span>
-        <span style="margin-left:8px;color:var(--muted);">${timeAgo(c.reviews[0].created_at)}</span>
-        ${c.reviews[0].comment ? `<p style="margin-top:6px;">${c.reviews[0].comment}</p>` : ''}
-      </div>` : ''}
+    <div id="review-panel-app">${appReviews}</div>
+    <div id="review-panel-google" style="display:none;">${googleReviews}</div>
+
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="prefillReport('${c.id}'); closeSheet(); setTimeout(()=>openSheet('report-sheet'),50);">📝 Report Price</button>
       <button class="btn btn-primary" onclick="openMaps(${c.lat},${c.lng},'${c.name}')">🗺️ Directions</button>
@@ -397,6 +544,14 @@ function showCafe(c) {
     <button class="btn btn-caramel btn-full" onclick="showToast('Gas — added to your list! 📍')">+ Add to My List</button>
   `;
   openSheet('cafe-sheet');
+}
+
+function switchReviewTab(tab, cafeId) {
+  activeReviewTab = tab;
+  document.getElementById('rtab-app').classList.toggle('active', tab === 'app');
+  document.getElementById('rtab-google').classList.toggle('active', tab === 'google');
+  document.getElementById('review-panel-app').style.display    = tab === 'app'    ? '' : 'none';
+  document.getElementById('review-panel-google').style.display = tab === 'google' ? '' : 'none';
 }
 
 function openMaps(lat, lng, name) {
@@ -414,13 +569,10 @@ async function submitCafe() {
   const name = document.getElementById('sub-name').value.trim();
   const address = document.getElementById('sub-address').value.trim();
   const type = document.getElementById('sub-type').value;
-  const fw = document.getElementById('sub-fw').value;
-  const am = document.getElementById('sub-am').value;
   const review = document.getElementById('sub-review').value.trim();
 
   if (!name || !address) { showToast('Please enter a name and address'); return; }
 
-  // Geocode address using Nominatim (free)
   showToast('Finding location…');
   let lat = 53.35, lng = -6.26;
   try {
@@ -432,16 +584,24 @@ async function submitCafe() {
   const { data: cafe, error } = await db.from('cafes').insert({ name, address, lat, lng, type }).select().single();
   if (error) { showToast('Error adding café — try again'); console.error(error); return; }
 
-  if (fw) await db.from('prices').insert({ cafe_id: cafe.id, drink: 'flat white', price: parseFloat(fw) });
-  if (am) await db.from('prices').insert({ cafe_id: cafe.id, drink: 'americano', price: parseFloat(am) });
+  const subDrinks = [
+    { id:'sub-fw',    drink:'flat white' },
+    { id:'sub-am',    drink:'americano' },
+    { id:'sub-latte', drink:'latte' },
+    { id:'sub-cap',   drink:'cappuccino' },
+  ];
+  const priceInserts = subDrinks
+    .map(f => ({ field: f, val: document.getElementById(f.id).value }))
+    .filter(x => x.val)
+    .map(x => ({ cafe_id: cafe.id, drink: x.field.drink, price: parseFloat(x.val) }));
+  if (priceInserts.length) await db.from('prices').insert(priceInserts);
+
   if (subStarVal > 0) await db.from('reviews').insert({ cafe_id: cafe.id, rating: subStarVal, comment: review || null });
 
   showToast('Legend! Café added ☕');
-  document.getElementById('sub-name').value = '';
-  document.getElementById('sub-address').value = '';
-  document.getElementById('sub-fw').value = '';
-  document.getElementById('sub-am').value = '';
-  document.getElementById('sub-review').value = '';
+  ['sub-name','sub-address','sub-fw','sub-am','sub-latte','sub-cap','sub-review'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
   subStarVal = 0;
   document.querySelectorAll('#sub-stars .star-sel').forEach(s => s.classList.remove('selected'));
   loadCafes();
@@ -454,15 +614,30 @@ function prefillReport(cafeId) {
 
 async function submitPrice() {
   const cafeId = document.getElementById('report-cafe').value;
-  const fw = document.getElementById('report-fw').value;
-  const am = document.getElementById('report-am').value;
-  if (!fw && !am) { showToast('Enter at least one price'); return; }
-  if (fw) await db.from('prices').insert({ cafe_id: cafeId, drink: 'flat white', price: parseFloat(fw) });
-  if (am) await db.from('prices').insert({ cafe_id: cafeId, drink: 'americano', price: parseFloat(am) });
+  const drinkFields = [
+    { id: 'report-fw',      drink: 'flat white' },
+    { id: 'report-am',      drink: 'americano' },
+    { id: 'report-latte',   drink: 'latte' },
+    { id: 'report-cap',     drink: 'cappuccino' },
+    { id: 'report-esp',     drink: 'espresso' },
+    { id: 'report-cort',    drink: 'cortado' },
+    { id: 'report-filter',  drink: 'filter coffee' },
+    { id: 'report-matcha',  drink: 'matcha latte' },
+    { id: 'report-hc',      drink: 'hot chocolate' },
+    { id: 'report-tea',     drink: 'tea' },
+    { id: 'report-croissant',drink: 'croissant' },
+    { id: 'report-pastry',  drink: 'pastry' },
+  ];
+  const inserts = drinkFields
+    .map(f => ({ field: f, val: document.getElementById(f.id).value }))
+    .filter(x => x.val)
+    .map(x => ({ cafe_id: cafeId, drink: x.field.drink, price: parseFloat(x.val) }));
+
+  if (!inserts.length) { showToast('Enter at least one price'); return; }
+  await db.from('prices').insert(inserts);
   closeSheet();
-  showToast('Legend! Price submitted ☕');
-  document.getElementById('report-fw').value = '';
-  document.getElementById('report-am').value = '';
+  showToast(`Legend! ${inserts.length} price${inserts.length>1?'s':''} submitted ☕`);
+  drinkFields.forEach(f => { document.getElementById(f.id).value = ''; });
   loadCafes();
 }
 
@@ -471,15 +646,7 @@ function setChip(el, filter) {
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
   activeFilter = filter;
-  let filtered = allCafes;
-  if (filter === 'indie') filtered = allCafes.filter(c => c.type === 'indie');
-  if (filter === 'chain') filtered = allCafes.filter(c => c.type === 'chain');
-  if (filter === 'cheap') filtered = [...allCafes].sort((a,b) => {
-    const pa = parseFloat(getLatestPrice(a,'flat white')) || 99;
-    const pb = parseFloat(getLatestPrice(b,'flat white')) || 99;
-    return pa - pb;
-  });
-  renderMarkers(filtered);
+  renderMarkers(getCurrentFiltered());
 }
 
 function filterMarkers(query) {

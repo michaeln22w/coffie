@@ -301,14 +301,25 @@ L.control.zoom({position:'bottomright'}).addTo(map);
 
 // ---- LOAD CAFÉS ----
 async function loadCafes() {
-  const { data, error } = await db.from('cafes').select(`
-    *,
-    prices(drink, price, created_at),
-    reviews(rating, comment, created_at)
-  `).order('name');
+  const pageSize = 1000;
+  let allData = [];
+  let from = 0;
 
-  if (error) { console.error(error); return; }
-  allCafes = data || [];
+  while (true) {
+    const { data, error } = await db.from('cafes').select(`
+      *,
+      prices(drink, price, created_at),
+      reviews(rating, comment, created_at)
+    `).order('name').range(from, from + pageSize - 1);
+
+    if (error) { console.error(error); break; }
+    if (!data || data.length === 0) break;
+    allData = allData.concat(data);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+
+  allCafes = allData;
   renderMarkers(allCafes);
   renderNearby(allCafes);
   populateReportSelect(allCafes);
@@ -526,6 +537,8 @@ function getHoursText(cafe) {
 }
 
 function showCafe(c) {
+  try {
+  const rating = getAvgRating(c);
   const reviewCount = c.reviews ? c.reviews.length : 0;
   const latestPrice = c.prices && c.prices.length
     ? c.prices.sort((a,b) => new Date(b.created_at)-new Date(a.created_at))[0]
@@ -591,6 +604,7 @@ function showCafe(c) {
     <button class="btn btn-caramel btn-full" onclick="showToast('Gas — added to your list! 📍')">+ Add to My List</button>
   `;
   openSheet('cafe-sheet');
+  } catch(e) { console.error('showCafe error:', e); }
 }
 
 function switchReviewTab(tab, cafeId) {

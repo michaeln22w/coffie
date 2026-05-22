@@ -344,6 +344,57 @@ textarea.form-input { resize:none; }
       <div style="font-size:13px;color:var(--brown);line-height:1.6;margin-bottom:12px;">Wrong hours, closed café, incorrect info? Let us know.</div>
       <a href="mailto:muggacoffie@gmail.com?subject=Report an Issue" style="display:block;background:var(--cream2);color:var(--brown2);text-align:center;padding:12px;border-radius:12px;font-weight:700;font-size:14px;text-decoration:none;border:1.5px solid var(--border);">Report ↗</a>
     </div>
+
+    <!-- Legal -->
+    <div style="margin-top:14px;">
+      <!-- Terms of Service -->
+      <div style="background:var(--cream2);border-radius:16px;border:1px solid var(--border);margin-bottom:10px;overflow:hidden;">
+        <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.chevron').style.transform=this.nextElementSibling.style.display==='block'?'rotate(180deg)':'rotate(0deg)'"
+          style="width:100%;padding:16px 18px;background:transparent;border:none;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:700;color:var(--brown2);font-size:14px;font-family:'DM Sans',sans-serif;">
+          📋 Terms of Service
+          <span class="chevron" style="transition:transform 0.2s;font-size:12px;color:var(--muted);">▼</span>
+        </button>
+        <div style="display:none;padding:0 18px 18px;font-size:12px;color:var(--brown);line-height:1.7;">
+          <p style="margin:0 0 10px;"><strong>Last updated: May 2026</strong></p>
+          <p style="margin:0 0 10px;">By using CoffIE ("the App"), you agree to these Terms of Service. If you do not agree, please do not use the App.</p>
+          <p style="margin:0 0 6px;"><strong>Use of the App</strong></p>
+          <p style="margin:0 0 10px;">CoffIE is a free service providing a map of cafés across Ireland with crowd-sourced pricing and reviews. You may use the App for personal, non-commercial purposes only.</p>
+          <p style="margin:0 0 6px;"><strong>User Submissions</strong></p>
+          <p style="margin:0 0 10px;">When you submit prices, reviews, or café information, you confirm the information is accurate to the best of your knowledge. You grant CoffIE a non-exclusive licence to display your submissions. Do not submit false, misleading, or harmful content.</p>
+          <p style="margin:0 0 6px;"><strong>Accuracy</strong></p>
+          <p style="margin:0 0 10px;">Café information, prices, and opening hours are crowd-sourced and may not always be accurate or up to date. CoffIE accepts no liability for decisions made based on information in the App.</p>
+          <p style="margin:0 0 6px;"><strong>Intellectual Property</strong></p>
+          <p style="margin:0 0 10px;">The CoffIE name, logo, and design are © 2026 Michael Nolan. You may not reproduce or use them without permission.</p>
+          <p style="margin:0 0 6px;"><strong>Changes</strong></p>
+          <p style="margin:0;">We may update these Terms at any time. Continued use of the App constitutes acceptance of any changes.</p>
+        </div>
+      </div>
+
+      <!-- Privacy Policy -->
+      <div style="background:var(--cream2);border-radius:16px;border:1px solid var(--border);overflow:hidden;">
+        <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.chevron').style.transform=this.nextElementSibling.style.display==='block'?'rotate(180deg)':'rotate(0deg)'"
+          style="width:100%;padding:16px 18px;background:transparent;border:none;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:700;color:var(--brown2);font-size:14px;font-family:'DM Sans',sans-serif;">
+          🔒 Privacy Policy
+          <span class="chevron" style="transition:transform 0.2s;font-size:12px;color:var(--muted);">▼</span>
+        </button>
+        <div style="display:none;padding:0 18px 18px;font-size:12px;color:var(--brown);line-height:1.7;">
+          <p style="margin:0 0 10px;"><strong>Last updated: May 2026</strong></p>
+          <p style="margin:0 0 10px;">CoffIE is committed to protecting your privacy in accordance with the General Data Protection Regulation (GDPR) and Irish data protection law.</p>
+          <p style="margin:0 0 6px;"><strong>Data We Collect</strong></p>
+          <p style="margin:0 0 10px;">CoffIE does not require you to create an account. When you submit prices or reviews, the submission is stored anonymously — we do not collect your name or email. If you contact us by email, we store only what you provide.</p>
+          <p style="margin:0 0 6px;"><strong>Location Data</strong></p>
+          <p style="margin:0 0 10px;">If you tap the locate button, your device's GPS is used to centre the map. Your location is never stored or transmitted to our servers.</p>
+          <p style="margin:0 0 6px;"><strong>Third Party Services</strong></p>
+          <p style="margin:0 0 10px;">CoffIE uses Supabase (database), Vercel (hosting), OpenStreetMap (mapping), and Google Places API (café data). These services may process data in accordance with their own privacy policies.</p>
+          <p style="margin:0 0 6px;"><strong>Your Rights</strong></p>
+          <p style="margin:0 0 10px;">Under GDPR you have the right to access, correct, or request deletion of any personal data we hold. Contact us at muggacoffie@gmail.com to exercise these rights.</p>
+          <p style="margin:0 0 6px;"><strong>Cookies</strong></p>
+          <p style="margin:0 0 10px;">CoffIE does not use tracking cookies or advertising cookies.</p>
+          <p style="margin:0 0 6px;"><strong>Contact</strong></p>
+          <p style="margin:0;">Data controller: Michael Nolan · muggacoffie@gmail.com</p>
+        </div>
+      </div>
+    </div>
   </div>
 
 </div>

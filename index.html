@@ -157,6 +157,7 @@ textarea.form-input { resize:none; }
     <div class="logo-sub">gas for the soul ☕</div>
   </div>
   <div class="header-right">
+    <div class="icon-btn" onclick="openSheet('county-sheet')">🗺</div>
     <div class="icon-btn" onclick="openSheet('report-sheet')">＋</div>
     <div class="icon-btn" onclick="locateUser()">⊕</div>
   </div>
@@ -255,6 +256,45 @@ textarea.form-input { resize:none; }
     </div>
 
     <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:16px;border:1px solid var(--border);">
+      <div style="font-weight:700;color:var(--brown2);margin-bottom:12px;font-size:15px;">🚧 Coming Soon</div>
+      <!-- Coffee cup under construction SVG -->
+      <div style="text-align:center;margin-bottom:14px;">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="18" y="34" width="34" height="26" rx="4" fill="#5C3317" opacity="0.15" stroke="#5C3317" stroke-width="2"/>
+          <path d="M52 42h6a6 6 0 010 12h-6" stroke="#5C3317" stroke-width="2" stroke-linecap="round"/>
+          <path d="M26 34V28c0-3 2-5 5-5h10c3 0 5 2 5 5v6" stroke="#5C3317" stroke-width="2" stroke-linecap="round"/>
+          <path d="M22 60h36" stroke="#5C3317" stroke-width="2" stroke-linecap="round"/>
+          <!-- Steam -->
+          <path d="M32 22c0-2 2-2 2-4s-2-2-2-4" stroke="#c8843a" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M40 20c0-2 2-2 2-4s-2-2-2-4" stroke="#c8843a" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- Construction hat -->
+          <rect x="28" y="8" width="24" height="6" rx="2" fill="#f0a500"/>
+          <rect x="32" y="6" width="16" height="4" rx="2" fill="#f0a500"/>
+          <!-- Stripes on hat -->
+          <path d="M34 8v6M40 8v6M46 8v6" stroke="#5C3317" stroke-width="1.5" opacity="0.4"/>
+        </svg>
+      </div>
+      <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:12px;font-style:italic;">Good things brewing…</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--brown);">
+          <span style="font-size:16px;">👤</span><div><strong>User Accounts</strong> — save your favourite cafés and own your reviews</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--brown);">
+          <span style="font-size:16px;">🏠</span><div><strong>Owner Dashboards</strong> — claim your listing, update prices, get featured</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--brown);">
+          <span style="font-size:16px;">📸</span><div><strong>Café Photos</strong> — see inside before you go</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--brown);">
+          <span style="font-size:16px;">📶</span><div><strong>WiFi & Dog Friendly filters</strong> — find the right spot for you</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--brown);">
+          <span style="font-size:16px;">🎲</span><div><strong>Surprise Me</strong> — discover a random open café near you</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:16px;border:1px solid var(--border);">
       <div style="font-weight:700;color:var(--brown2);margin-bottom:12px;font-size:15px;">📬 Contact Us</div>
       <div style="font-size:13px;color:var(--brown);line-height:1.6;margin-bottom:12px;">Got feedback, spotted an issue, or just want to say hi? We'd love to hear from you.</div>
       <a href="mailto:muggacoffie@gmail.com" style="display:flex;align-items:center;gap:10px;background:white;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;text-decoration:none;">
@@ -280,6 +320,16 @@ textarea.form-input { resize:none; }
   <div class="nav-item" onclick="switchView('nearby',this)"><div class="nav-icon">📍</div>Nearby</div>
   <div class="nav-item" onclick="switchView('about',this)"><div class="nav-icon">☕</div>About</div>
 </nav>
+
+<!-- COUNTY FILTER SHEET -->
+<div class="bottom-sheet" id="county-sheet" style="max-height:70dvh;">
+  <div class="sheet-handle"></div>
+  <div class="sheet-content">
+    <div class="section-title">🗺️ Filter by County</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;" id="county-grid"></div>
+    <button class="btn btn-secondary" style="width:100%;" onclick="clearCounty()">☕ Show All Ireland</button>
+  </div>
+</div>
 
 <!-- OVERLAYS -->
 <div class="sheet-overlay" id="overlay" onclick="closeSheet()"></div>
@@ -331,10 +381,13 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 let allCafes = [];
 let markerLayer = null;
 let activeFilter = 'all';
-let markerMode = 'default'; // 'default' | 'hours' | 'rating' | 'price'
+let activeCounty = null;
+let markerMode = 'default';
 let selectedStar = 0;
 let subStar = 0;
-let activeReviewTab = 'app'; // 'app' | 'google'
+let activeReviewTab = 'app';
+let userLat = null;
+let userLng = null;
 
 // ---- MAP ----
 const map = L.map('map', {zoomControl:false}).setView([53.35, -7.95], 7);
@@ -378,15 +431,18 @@ function setMarkerMode(mode, btn) {
 }
 
 function getCurrentFiltered() {
-  if (activeFilter === 'indie') return allCafes.filter(c => c.type === 'indie');
-  if (activeFilter === 'chain') return allCafes.filter(c => c.type === 'chain');
-  if (activeFilter === 'cheap') return [...allCafes].sort((a,b) => {
+  let base = activeCounty
+    ? allCafes.filter(c => c.address && c.address.toLowerCase().includes(activeCounty.toLowerCase()))
+    : allCafes;
+  if (activeFilter === 'indie') return base.filter(c => c.type === 'indie');
+  if (activeFilter === 'chain') return base.filter(c => c.type === 'chain');
+  if (activeFilter === 'cheap') return [...base].sort((a,b) => {
     const pa = parseFloat(getLatestPrice(a,'flat white')) || 99;
     const pb = parseFloat(getLatestPrice(b,'flat white')) || 99;
     return pa - pb;
   });
-  if (activeFilter === 'open') return allCafes.filter(c => isOpenNow(c));
-  return allCafes;
+  if (activeFilter === 'open') return base.filter(c => isOpenNow(c));
+  return base;
 }
 
 function isOpenNow(cafe) {
@@ -516,21 +572,49 @@ function timeAgo(ts) {
 }
 
 // ---- NEARBY LIST ----
+function getDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
 function renderNearby(cafes) {
   const list = document.getElementById('nearby-list');
   if (!cafes.length) {
     list.innerHTML = `<div class="empty-state"><div>☕</div>No cafés yet — be the first to add one!</div>`;
     return;
   }
-  list.innerHTML = cafes.map(c => {
+
+  // Sort by distance if we have user location, otherwise by rating
+  let sorted = [...cafes];
+  if (userLat && userLng) {
+    sorted = sorted.map(c => ({ ...c, _dist: getDistance(userLat, userLng, c.lat, c.lng) }))
+      .sort((a, b) => a._dist - b._dist);
+  }
+
+  list.innerHTML = sorted.slice(0, 50).map(c => {
     const price = getLatestPrice(c, 'flat white');
     const rating = getAvgRating(c);
+    const open = isOpenNow(c);
+    const openBadge = open === true
+      ? `<span style="font-size:10px;background:#e8f5e9;color:#2d7a2d;padding:2px 6px;border-radius:8px;font-weight:700;">☕ Open</span>`
+      : open === false
+      ? `<span style="font-size:10px;background:#fdecea;color:#b03030;padding:2px 6px;border-radius:8px;font-weight:700;">🫗 Closed</span>`
+      : '';
+    const distText = c._dist != null ? `${c._dist < 1 ? (c._dist * 1000).toFixed(0)+'m' : c._dist.toFixed(1)+'km'} away` : '';
     return `
       <div class="nearby-item" onclick="showCafe(allCafes.find(x=>x.id==='${c.id}'))">
-        <div class="nearby-icon">☕</div>
+        <div class="nearby-icon">${open === false ? '🫗' : '☕'}</div>
         <div class="nearby-info">
           <div class="nearby-name">${c.name}</div>
-          <div class="nearby-sub">${c.address}</div>
+          <div class="nearby-sub" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            ${openBadge}
+            ${distText ? `<span style="font-size:11px;color:var(--muted);">📍 ${distText}</span>` : `<span style="font-size:11px;color:var(--muted);">${c.address.split(',').slice(-2).join(',').trim()}</span>`}
+          </div>
         </div>
         <div class="nearby-right">
           <div class="nearby-price">${price ? '€'+price : '—'}</div>
@@ -753,16 +837,72 @@ function setChip(el, filter) {
 }
 
 function filterMarkers(query) {
-  if (!query) { renderMarkers(allCafes); return; }
+  if (!query) { renderMarkers(getCurrentFiltered()); return; }
   const q = query.toLowerCase();
-  renderMarkers(allCafes.filter(c => c.name.toLowerCase().includes(q) || c.address.toLowerCase().includes(q)));
+  const filtered = allCafes.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    c.address.toLowerCase().includes(q) ||
+    (c.type && c.type.toLowerCase().includes(q))
+  );
+  renderMarkers(filtered);
+}
+
+// ---- COUNTY FILTER ----
+const IRISH_COUNTIES = [
+  'Antrim','Armagh','Carlow','Cavan','Clare','Cork','Derry','Donegal',
+  'Down','Dublin','Fermanagh','Galway','Kerry','Kildare','Kilkenny',
+  'Laois','Leitrim','Limerick','Longford','Louth','Mayo','Meath',
+  'Monaghan','Offaly','Roscommon','Sligo','Tipperary','Tyrone',
+  'Waterford','Westmeath','Wexford','Wicklow'
+];
+
+function buildCountyGrid() {
+  const grid = document.getElementById('county-grid');
+  grid.innerHTML = IRISH_COUNTIES.map(county => `
+    <button class="county-btn" onclick="setCounty('${county}',this)"
+      style="padding:10px 8px;border-radius:10px;border:1.5px solid var(--border);background:var(--cream2);font-size:13px;font-weight:600;color:var(--brown2);cursor:pointer;text-align:center;">
+      ${county}
+    </button>`).join('');
+}
+
+function setCounty(county, el) {
+  activeCounty = county;
+  document.querySelectorAll('.county-btn').forEach(b => {
+    b.style.background = 'var(--cream2)';
+    b.style.borderColor = 'var(--border)';
+    b.style.color = 'var(--brown2)';
+  });
+  el.style.background = 'var(--brown)';
+  el.style.borderColor = 'var(--brown)';
+  el.style.color = 'var(--cream)';
+  closeSheet();
+  const filtered = allCafes.filter(c => c.address && c.address.toLowerCase().includes(county.toLowerCase()));
+  renderMarkers(filtered);
+  renderNearby(filtered);
+  showToast(`☕ Showing cafés in Co. ${county}`);
+}
+
+function clearCounty() {
+  activeCounty = null;
+  document.querySelectorAll('.county-btn').forEach(b => {
+    b.style.background = 'var(--cream2)';
+    b.style.borderColor = 'var(--border)';
+    b.style.color = 'var(--brown2)';
+  });
+  closeSheet();
+  renderMarkers(allCafes);
+  renderNearby(allCafes);
+  showToast('☕ Showing all of Ireland');
 }
 
 // ---- LOCATE ----
 function locateUser() {
   if (!navigator.geolocation) { showToast('Location not supported'); return; }
   navigator.geolocation.getCurrentPosition(pos => {
-    map.setView([pos.coords.latitude, pos.coords.longitude], 14);
+    userLat = pos.coords.latitude;
+    userLng = pos.coords.longitude;
+    map.setView([userLat, userLng], 14);
+    renderNearby(allCafes);
     showToast('📍 Located!');
   }, () => showToast('Could not get location'));
 }
@@ -808,6 +948,7 @@ function shareCoffie() {
 
 // ---- INIT ----
 document.getElementById('mode-pill').style.display = 'flex';
+buildCountyGrid();
 loadCafes();
 </script>
 </body>

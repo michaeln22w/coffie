@@ -136,3 +136,8 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Seed scripts (contain API keys — local only)
+scripts/seed.js
+scripts/seed_v2.js
+scripts/backfill_hours.js

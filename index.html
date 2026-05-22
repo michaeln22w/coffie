@@ -77,7 +77,9 @@ header { background:var(--brown); padding:0 16px; height:58px; display:flex; ali
 .drink-value { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--brown2); }
 .drink-time { font-size:10px; color:var(--muted); margin-top:2px; }
 
-/* review tabs */
+/* about sub-tabs */
+.about-tab { flex:1; padding:12px 4px; font-size:12px; font-weight:700; color:var(--muted); background:transparent; border:none; cursor:pointer; border-bottom:3px solid transparent; transition:all 0.15s; }
+.about-tab.active { color:var(--brown2); border-bottom-color:var(--caramel2); }
 .review-tabs { display:flex; gap:0; margin-bottom:10px; border:1.5px solid var(--border); border-radius:10px; overflow:hidden; }
 .review-tab { flex:1; padding:8px; text-align:center; font-size:12px; font-weight:600; cursor:pointer; background:transparent; color:var(--muted); border:none; transition:all 0.15s; }
 .review-tab.active { background:var(--brown); color:var(--cream); }
@@ -233,72 +235,97 @@ textarea.form-input { resize:none; }
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
-<div id="view-about" class="hidden" style="flex:1;overflow-y:auto;">
-  <div style="padding:24px 16px 40px;">
-    <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--brown2);margin-bottom:4px;">CoffIE ☕</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:24px;font-style:italic;">gas for the soul</div>
+<!-- ABOUT VIEW -->
+<div id="view-about" class="hidden" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;">
 
-    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:16px;border:1px solid var(--border);">
+  <!-- About sub-tabs -->
+  <div style="display:flex;border-bottom:2px solid var(--border);background:var(--cream);flex-shrink:0;">
+    <button class="about-tab active" id="atab-about" onclick="switchAboutTab('about')">☕ About</button>
+    <button class="about-tab" id="atab-soon" onclick="switchAboutTab('soon')">🚧 Coming Soon</button>
+    <button class="about-tab" id="atab-contact" onclick="switchAboutTab('contact')">📬 Contact</button>
+  </div>
+
+  <!-- ABOUT PANEL -->
+  <div id="apanel-about" style="flex:1;overflow-y:auto;padding:20px 16px 40px;">
+    <div style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--brown2);margin-bottom:2px;">CoffIE ☕</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px;font-style:italic;">gas for the soul</div>
+
+    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:14px;border:1px solid var(--border);">
       <div style="font-weight:700;color:var(--brown2);margin-bottom:8px;font-size:15px;">🗺️ What is CoffIE?</div>
       <div style="font-size:13px;color:var(--brown);line-height:1.6;">CoffIE is Ireland's live coffee map — helping you find great cafés near you, check prices, read reviews, and discover hidden gems across the island. Built by a coffee lover, for coffee lovers.</div>
     </div>
 
-    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:16px;border:1px solid var(--border);">
+    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:14px;border:1px solid var(--border);">
       <div style="font-weight:700;color:var(--brown2);margin-bottom:8px;font-size:15px;">💰 Prices</div>
       <div style="font-size:13px;color:var(--brown);line-height:1.6;">All prices are crowd-sourced — submitted by real customers like you. Spot a wrong price? Submit the correct one and help keep CoffIE accurate for everyone.</div>
     </div>
 
-    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:16px;border:1px solid var(--border);">
+    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:14px;border:1px solid var(--border);">
       <div style="font-weight:700;color:var(--brown2);margin-bottom:12px;font-size:15px;">🏠 Are you a café owner?</div>
       <div style="font-size:13px;color:var(--brown);line-height:1.6;margin-bottom:12px;">Claim your listing to update your prices, add photos, and get featured on the map. Owner dashboards coming soon.</div>
       <a href="mailto:muggacoffie@gmail.com?subject=Café Owner Enquiry" style="display:block;background:var(--brown);color:var(--cream);text-align:center;padding:12px;border-radius:12px;font-weight:700;font-size:14px;text-decoration:none;">Get in touch ↗</a>
     </div>
 
-    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:16px;border:1px solid var(--border);">
-      <div style="font-weight:700;color:var(--brown2);margin-bottom:12px;font-size:15px;">🚧 Coming Soon</div>
-      <!-- Coffee cup under construction SVG -->
-      <div style="text-align:center;margin-bottom:14px;">
-        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="18" y="34" width="34" height="26" rx="4" fill="#5C3317" opacity="0.15" stroke="#5C3317" stroke-width="2"/>
-          <path d="M52 42h6a6 6 0 010 12h-6" stroke="#5C3317" stroke-width="2" stroke-linecap="round"/>
-          <path d="M26 34V28c0-3 2-5 5-5h10c3 0 5 2 5 5v6" stroke="#5C3317" stroke-width="2" stroke-linecap="round"/>
-          <path d="M22 60h36" stroke="#5C3317" stroke-width="2" stroke-linecap="round"/>
-          <!-- Steam -->
-          <path d="M32 22c0-2 2-2 2-4s-2-2-2-4" stroke="#c8843a" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M40 20c0-2 2-2 2-4s-2-2-2-4" stroke="#c8843a" stroke-width="1.5" stroke-linecap="round"/>
-          <!-- Construction hat -->
-          <rect x="28" y="8" width="24" height="6" rx="2" fill="#f0a500"/>
-          <rect x="32" y="6" width="16" height="4" rx="2" fill="#f0a500"/>
-          <!-- Stripes on hat -->
-          <path d="M34 8v6M40 8v6M46 8v6" stroke="#5C3317" stroke-width="1.5" opacity="0.4"/>
-        </svg>
+    <button onclick="shareCoffie()" style="width:100%;background:var(--caramel2);color:var(--brown);border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:20px;">☕ Share a Cuppa</button>
+
+    <div style="text-align:center;font-size:12px;color:var(--muted);">
+      Brewed by <strong style="color:var(--brown2);">Michael Nolan</strong><br>
+      <span style="font-size:11px;font-style:italic;">First Brew ☕ · © 2026 CoffIE</span>
+    </div>
+  </div>
+
+  <!-- COMING SOON PANEL -->
+  <div id="apanel-soon" style="display:none;flex:1;overflow-y:auto;padding:20px 16px 40px;">
+    <div style="text-align:center;margin-bottom:6px;">
+      <svg width="90" height="90" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="18" y="34" width="34" height="26" rx="4" fill="#5C3317" opacity="0.15" stroke="#5C3317" stroke-width="2"/>
+        <path d="M52 42h6a6 6 0 010 12h-6" stroke="#5C3317" stroke-width="2" stroke-linecap="round"/>
+        <path d="M26 34V28c0-3 2-5 5-5h10c3 0 5 2 5 5v6" stroke="#5C3317" stroke-width="2" stroke-linecap="round"/>
+        <path d="M22 60h36" stroke="#5C3317" stroke-width="2" stroke-linecap="round"/>
+        <path d="M32 22c0-2 2-2 2-4s-2-2-2-4" stroke="#c8843a" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M40 20c0-2 2-2 2-4s-2-2-2-4" stroke="#c8843a" stroke-width="1.5" stroke-linecap="round"/>
+        <rect x="28" y="8" width="24" height="6" rx="2" fill="#f0a500"/>
+        <rect x="32" y="6" width="16" height="4" rx="2" fill="#f0a500"/>
+        <path d="M34 8v6M40 8v6M46 8v6" stroke="#5C3317" stroke-width="1.5" opacity="0.4"/>
+      </svg>
+    </div>
+    <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--brown2);text-align:center;margin-bottom:4px;">Good things brewing…</div>
+    <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:24px;">Here's what's on the way</div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="background:var(--cream2);border-radius:14px;padding:16px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;">
+        <span style="font-size:28px;">👤</span>
+        <div><div style="font-weight:700;color:var(--brown2);font-size:14px;">User Accounts</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">Save your favourite cafés and own your reviews</div></div>
       </div>
-      <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:12px;font-style:italic;">Good things brewing…</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--brown);">
-          <span style="font-size:16px;">👤</span><div><strong>User Accounts</strong> — save your favourite cafés and own your reviews</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--brown);">
-          <span style="font-size:16px;">🏠</span><div><strong>Owner Dashboards</strong> — claim your listing, update prices, get featured</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--brown);">
-          <span style="font-size:16px;">📸</span><div><strong>Café Photos</strong> — see inside before you go</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--brown);">
-          <span style="font-size:16px;">📶</span><div><strong>WiFi & Dog Friendly filters</strong> — find the right spot for you</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--brown);">
-          <span style="font-size:16px;">🎲</span><div><strong>Surprise Me</strong> — discover a random open café near you</div>
-        </div>
+      <div style="background:var(--cream2);border-radius:14px;padding:16px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;">
+        <span style="font-size:28px;">🏠</span>
+        <div><div style="font-weight:700;color:var(--brown2);font-size:14px;">Owner Dashboards</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">Claim your listing, update prices, get featured</div></div>
+      </div>
+      <div style="background:var(--cream2);border-radius:14px;padding:16px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;">
+        <span style="font-size:28px;">📸</span>
+        <div><div style="font-weight:700;color:var(--brown2);font-size:14px;">Café Photos</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">See inside before you go</div></div>
+      </div>
+      <div style="background:var(--cream2);border-radius:14px;padding:16px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;">
+        <span style="font-size:28px;">📶</span>
+        <div><div style="font-weight:700;color:var(--brown2);font-size:14px;">WiFi & Dog Friendly Filters</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">Find the right spot for you</div></div>
+      </div>
+      <div style="background:var(--cream2);border-radius:14px;padding:16px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;">
+        <span style="font-size:28px;">🎲</span>
+        <div><div style="font-weight:700;color:var(--brown2);font-size:14px;">Surprise Me</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">Discover a random open café near you</div></div>
       </div>
     </div>
+  </div>
 
-    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:16px;border:1px solid var(--border);">
-      <div style="font-weight:700;color:var(--brown2);margin-bottom:12px;font-size:15px;">📬 Contact Us</div>
-      <div style="font-size:13px;color:var(--brown);line-height:1.6;margin-bottom:12px;">Got feedback, spotted an issue, or just want to say hi? We'd love to hear from you.</div>
-      <a href="mailto:muggacoffie@gmail.com" style="display:flex;align-items:center;gap:10px;background:white;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;text-decoration:none;">
-        <span style="font-size:20px;">✉️</span>
+  <!-- CONTACT PANEL -->
+  <div id="apanel-contact" style="display:none;flex:1;overflow-y:auto;padding:20px 16px 40px;">
+    <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--brown2);margin-bottom:4px;">Say Hello 👋</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:24px;">We'd love to hear from you</div>
+
+    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:14px;border:1px solid var(--border);">
+      <div style="font-weight:700;color:var(--brown2);margin-bottom:8px;font-size:15px;">💬 General Enquiries</div>
+      <div style="font-size:13px;color:var(--brown);line-height:1.6;margin-bottom:12px;">Got feedback, spotted an issue, or just want to say hi?</div>
+      <a href="mailto:muggacoffie@gmail.com" style="display:flex;align-items:center;gap:12px;background:white;border:1.5px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;">
+        <span style="font-size:22px;">✉️</span>
         <div>
           <div style="font-weight:700;color:var(--brown2);font-size:13px;">muggacoffie@gmail.com</div>
           <div style="font-size:11px;color:var(--muted);">We'll get back to you as soon as we can</div>
@@ -306,14 +333,19 @@ textarea.form-input { resize:none; }
       </a>
     </div>
 
-    <!-- Share button -->
-    <button onclick="shareCoffie()" style="width:100%;background:var(--caramel2);color:var(--brown);border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:20px;">☕ Share a Cuppa</button>
+    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:14px;border:1px solid var(--border);">
+      <div style="font-weight:700;color:var(--brown2);margin-bottom:8px;font-size:15px;">🏠 Café Owners</div>
+      <div style="font-size:13px;color:var(--brown);line-height:1.6;margin-bottom:12px;">Interested in claiming your listing or getting featured?</div>
+      <a href="mailto:muggacoffie@gmail.com?subject=Café Owner Enquiry" style="display:block;background:var(--brown);color:var(--cream);text-align:center;padding:12px;border-radius:12px;font-weight:700;font-size:14px;text-decoration:none;">Get in touch ↗</a>
+    </div>
 
-    <div style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;">
-      Brewed by <strong style="color:var(--brown2);">Michael Nolan</strong><br>
-      <span style="font-size:11px;font-style:italic;">First Brew ☕ · © 2026 CoffIE</span>
+    <div style="background:var(--cream2);border-radius:16px;padding:18px;border:1px solid var(--border);">
+      <div style="font-weight:700;color:var(--brown2);margin-bottom:8px;font-size:15px;">🚩 Report an Issue</div>
+      <div style="font-size:13px;color:var(--brown);line-height:1.6;margin-bottom:12px;">Wrong hours, closed café, incorrect info? Let us know.</div>
+      <a href="mailto:muggacoffie@gmail.com?subject=Report an Issue" style="display:block;background:var(--cream2);color:var(--brown2);text-align:center;padding:12px;border-radius:12px;font-weight:700;font-size:14px;text-decoration:none;border:1.5px solid var(--border);">Report ↗</a>
     </div>
   </div>
+
 </div>
 <nav class="bottom-nav">
   <div class="nav-item active" onclick="switchView('map',this)"><div class="nav-icon">🗺️</div>Map</div>
@@ -935,6 +967,14 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ---- ABOUT TABS ----
+function switchAboutTab(tab) {
+  ['about','soon','contact'].forEach(t => {
+    document.getElementById('apanel-'+t).style.display = t === tab ? 'block' : 'none';
+    document.getElementById('atab-'+t).classList.toggle('active', t === tab);
+  });
 }
 
 // ---- SHARE ----

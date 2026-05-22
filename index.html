@@ -414,6 +414,40 @@ textarea.form-input { resize:none; }
   </div>
 </div>
 
+<!-- WELCOME MODAL -->
+<div id="welcome-modal" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(26,10,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:24px;">
+  <div style="background:var(--cream);border-radius:24px;padding:28px 24px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(26,10,0,0.4);border:1.5px solid var(--caramel);text-align:center;">
+    <!-- Coffee cup SVG -->
+    <div style="margin-bottom:12px;">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="26" width="32" height="24" rx="4" fill="#5C3317" opacity="0.12" stroke="#5C3317" stroke-width="2"/>
+        <path d="M42 32h5a5 5 0 010 10h-5" stroke="#5C3317" stroke-width="2" stroke-linecap="round"/>
+        <path d="M14 50h28" stroke="#5C3317" stroke-width="2" stroke-linecap="round"/>
+        <path d="M22 14c0-2 2-2 2-4s-2-2-2-4" stroke="#c8843a" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M30 12c0-2 2-2 2-4s-2-2-2-4" stroke="#c8843a" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M38 14c0-2 2-2 2-4s-2-2-2-4" stroke="#c8843a" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M10 26h32" stroke="#5C3317" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--brown2);margin-bottom:4px;">Welcome to CoffIE ☕</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:18px;font-style:italic;">gas for the soul</div>
+
+    <div style="background:var(--cream2);border-radius:14px;padding:16px;margin-bottom:18px;border:1px solid var(--border);text-align:left;">
+      <p style="font-size:13px;color:var(--brown);line-height:1.7;margin:0 0 10px;">Hey! I'm <strong>Michael</strong> — a coffee lover from Ireland who got tired of not knowing what a flat white would cost before walking into a café ☕</p>
+      <p style="font-size:13px;color:var(--brown);line-height:1.7;margin:0 0 10px;">So I built <strong>CoffIE</strong> — Ireland's first live coffee map, powered by people like you. Find cafés, check prices, leave reviews, and help others discover great spots across the island.</p>
+      <p style="font-size:13px;color:var(--brown);line-height:1.7;margin:0;">This is just the beginning — lots more brewing. I hope you enjoy it! 🙏</p>
+    </div>
+
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px;">
+      Prices are crowd-sourced — if you spot something wrong, submit the correct one and help the community!
+    </div>
+
+    <button onclick="dismissWelcome()" style="width:100%;background:var(--brown);color:var(--cream);border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">
+      Let's find some coffee ☕
+    </button>
+  </div>
+</div>
+
 <!-- OVERLAYS -->
 <div class="sheet-overlay" id="overlay" onclick="closeSheet()"></div>
 
@@ -1037,9 +1071,22 @@ function shareCoffie() {
   });
 }
 
+// ---- WELCOME MODAL ----
+function showWelcome() {
+  if (!localStorage.getItem('coffie_welcomed')) {
+    const modal = document.getElementById('welcome-modal');
+    modal.style.display = 'flex';
+  }
+}
+function dismissWelcome() {
+  document.getElementById('welcome-modal').style.display = 'none';
+  localStorage.setItem('coffie_welcomed', '1');
+}
+
 // ---- INIT ----
 document.getElementById('mode-pill').style.display = 'flex';
 buildCountyGrid();
+showWelcome();
 loadCafes();
 </script>
 </body>

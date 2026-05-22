@@ -3,7 +3,13 @@
     {
       "source": "/(.*)",
       "destination": "https://coffie.ie/$1",
-      "permanent": true
+      "permanent": true,
+      "has": [
+        {
+          "type": "host",
+          "value": "coffie-self.vercel.app"
+        }
+      ]
     }
   ]
 }

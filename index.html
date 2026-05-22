@@ -134,7 +134,7 @@ textarea.form-input { resize:none; }
 
 .scroll-view { overflow-y:auto; height:100%; padding:16px; }
 
-.bottom-nav { height:62px; background:var(--brown); display:grid; grid-template-columns:repeat(4,1fr); flex-shrink:0; z-index:100; }
+.bottom-nav { height:62px; background:var(--brown); display:grid; grid-template-columns:repeat(3,1fr); flex-shrink:0; z-index:100; }
 .nav-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; color:rgba(245,239,224,0.45); font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
 .nav-item.active { color:var(--caramel2); }
 .nav-icon { font-size:20px; }
@@ -157,7 +157,7 @@ textarea.form-input { resize:none; }
     <div class="logo-sub">gas for the soul ☕</div>
   </div>
   <div class="header-right">
-    <div class="icon-btn" onclick="showReportSheet()">＋</div>
+    <div class="icon-btn" onclick="switchView('submit', null)">＋</div>
     <div class="icon-btn" onclick="locateUser()">⊕</div>
   </div>
 </header>
@@ -274,7 +274,6 @@ textarea.form-input { resize:none; }
 </div>
   <div class="nav-item active" onclick="switchView('map',this)"><div class="nav-icon">🗺️</div>Map</div>
   <div class="nav-item" onclick="switchView('nearby',this)"><div class="nav-icon">📍</div>Nearby</div>
-  <div class="nav-item" onclick="switchView('submit',this)"><div class="nav-icon">＋</div>Add</div>
   <div class="nav-item" onclick="switchView('about',this)"><div class="nav-icon">☕</div>About</div>
 </nav>
 

@@ -157,7 +157,7 @@ textarea.form-input { resize:none; }
     <div class="logo-sub">gas for the soul ☕</div>
   </div>
   <div class="header-right">
-    <div class="icon-btn" onclick="switchView('submit', null)">＋</div>
+    <div class="icon-btn" onclick="openSheet('report-sheet')">＋</div>
     <div class="icon-btn" onclick="locateUser()">⊕</div>
   </div>
 </header>
@@ -266,12 +266,16 @@ textarea.form-input { resize:none; }
       </a>
     </div>
 
-    <div style="text-align:center;font-size:12px;color:var(--muted);margin-top:24px;">
-      Made with ☕ in Ireland<br>
-      <span style="font-size:11px;">© 2026 CoffIE</span>
+    <!-- Share button -->
+    <button onclick="shareCoffie()" style="width:100%;background:var(--caramel2);color:var(--brown);border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:20px;">☕ Share a Cuppa</button>
+
+    <div style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;">
+      Brewed by <strong style="color:var(--brown2);">Michael Nolan</strong><br>
+      <span style="font-size:11px;font-style:italic;">First Brew ☕ · © 2026 CoffIE</span>
     </div>
   </div>
 </div>
+<nav class="bottom-nav">
   <div class="nav-item active" onclick="switchView('map',this)"><div class="nav-icon">🗺️</div>Map</div>
   <div class="nav-item" onclick="switchView('nearby',this)"><div class="nav-icon">📍</div>Nearby</div>
   <div class="nav-item" onclick="switchView('about',this)"><div class="nav-icon">☕</div>About</div>
@@ -791,6 +795,15 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ---- SHARE ----
+function shareCoffie() {
+  navigator.clipboard.writeText('https://coffie.ie').then(() => {
+    showToast('Link copied — spread the love! ☕');
+  }).catch(() => {
+    showToast('coffie.ie — share the love! ☕');
+  });
 }
 
 // ---- INIT ----

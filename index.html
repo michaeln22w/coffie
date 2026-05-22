@@ -134,7 +134,7 @@ textarea.form-input { resize:none; }
 
 .scroll-view { overflow-y:auto; height:100%; padding:16px; }
 
-.bottom-nav { height:62px; background:var(--brown); display:grid; grid-template-columns:repeat(3,1fr); flex-shrink:0; z-index:100; }
+.bottom-nav { height:62px; background:var(--brown); display:grid; grid-template-columns:repeat(4,1fr); flex-shrink:0; z-index:100; }
 .nav-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; color:rgba(245,239,224,0.45); font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
 .nav-item.active { color:var(--caramel2); }
 .nav-icon { font-size:20px; }
@@ -233,10 +233,49 @@ textarea.form-input { resize:none; }
 </div>
 
 <!-- BOTTOM NAV -->
-<nav class="bottom-nav">
+<div id="view-about" class="hidden" style="flex:1;overflow-y:auto;">
+  <div style="padding:24px 16px 40px;">
+    <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--brown2);margin-bottom:4px;">CoffIE ☕</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:24px;font-style:italic;">gas for the soul</div>
+
+    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:16px;border:1px solid var(--border);">
+      <div style="font-weight:700;color:var(--brown2);margin-bottom:8px;font-size:15px;">🗺️ What is CoffIE?</div>
+      <div style="font-size:13px;color:var(--brown);line-height:1.6;">CoffIE is Ireland's live coffee map — helping you find great cafés near you, check prices, read reviews, and discover hidden gems across the island. Built by a coffee lover, for coffee lovers.</div>
+    </div>
+
+    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:16px;border:1px solid var(--border);">
+      <div style="font-weight:700;color:var(--brown2);margin-bottom:8px;font-size:15px;">💰 Prices</div>
+      <div style="font-size:13px;color:var(--brown);line-height:1.6;">All prices are crowd-sourced — submitted by real customers like you. Spot a wrong price? Submit the correct one and help keep CoffIE accurate for everyone.</div>
+    </div>
+
+    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:16px;border:1px solid var(--border);">
+      <div style="font-weight:700;color:var(--brown2);margin-bottom:12px;font-size:15px;">🏠 Are you a café owner?</div>
+      <div style="font-size:13px;color:var(--brown);line-height:1.6;margin-bottom:12px;">Claim your listing to update your prices, add photos, and get featured on the map. Owner dashboards coming soon.</div>
+      <a href="mailto:muggacoffie@gmail.com?subject=Café Owner Enquiry" style="display:block;background:var(--brown);color:var(--cream);text-align:center;padding:12px;border-radius:12px;font-weight:700;font-size:14px;text-decoration:none;">Get in touch ↗</a>
+    </div>
+
+    <div style="background:var(--cream2);border-radius:16px;padding:18px;margin-bottom:16px;border:1px solid var(--border);">
+      <div style="font-weight:700;color:var(--brown2);margin-bottom:12px;font-size:15px;">📬 Contact Us</div>
+      <div style="font-size:13px;color:var(--brown);line-height:1.6;margin-bottom:12px;">Got feedback, spotted an issue, or just want to say hi? We'd love to hear from you.</div>
+      <a href="mailto:muggacoffie@gmail.com" style="display:flex;align-items:center;gap:10px;background:white;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;text-decoration:none;">
+        <span style="font-size:20px;">✉️</span>
+        <div>
+          <div style="font-weight:700;color:var(--brown2);font-size:13px;">muggacoffie@gmail.com</div>
+          <div style="font-size:11px;color:var(--muted);">We'll get back to you as soon as we can</div>
+        </div>
+      </a>
+    </div>
+
+    <div style="text-align:center;font-size:12px;color:var(--muted);margin-top:24px;">
+      Made with ☕ in Ireland<br>
+      <span style="font-size:11px;">© 2026 CoffIE</span>
+    </div>
+  </div>
+</div>
   <div class="nav-item active" onclick="switchView('map',this)"><div class="nav-icon">🗺️</div>Map</div>
   <div class="nav-item" onclick="switchView('nearby',this)"><div class="nav-icon">📍</div>Nearby</div>
   <div class="nav-item" onclick="switchView('submit',this)"><div class="nav-icon">＋</div>Add</div>
+  <div class="nav-item" onclick="switchView('about',this)"><div class="nav-icon">☕</div>About</div>
 </nav>
 
 <!-- OVERLAYS -->
@@ -738,7 +777,7 @@ function showReportSheet() { openSheet('report-sheet'); }
 
 // ---- VIEW SWITCHING ----
 function switchView(name, el) {
-  ['map','nearby','submit'].forEach(v => {
+  ['map','nearby','submit','about'].forEach(v => {
     document.getElementById('view-'+v).classList.toggle('hidden', v!==name);
   });
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));

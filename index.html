@@ -1,65 +1,11 @@
-<!-- CoffIE v1.4 -->
+<!-- CoffIE v1.3 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-
-<!-- Primary SEO -->
-<title>CoffIE — Find Coffee in Ireland | Café Prices & Reviews</title>
-<meta name="description" content="Ireland's live coffee map. Find cafés near you, check flat white prices, read reviews and discover hidden gems across Ireland. Free crowd-sourced café guide.">
-<meta name="keywords" content="coffee Ireland, cafes Ireland, best coffee Dublin, flat white price Ireland, cafe map Ireland, coffee near me Ireland, indie cafes Ireland">
-<meta name="author" content="Michael Nolan">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://coffie.ie">
-
-<!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://coffie.ie">
-<meta property="og:title" content="CoffIE — Ireland's Live Coffee Map">
-<meta property="og:description" content="Find cafés near you, check prices, read reviews. Ireland's first crowd-sourced coffee map. Gas for the soul ☕">
-<meta property="og:image" content="https://coffie.ie/og-image.png">
-<meta property="og:site_name" content="CoffIE">
-<meta property="og:locale" content="en_IE">
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:url" content="https://coffie.ie">
-<meta name="twitter:title" content="CoffIE — Ireland's Live Coffee Map">
-<meta name="twitter:description" content="Find cafés near you, check prices, read reviews. Ireland's first crowd-sourced coffee map ☕">
-<meta name="twitter:image" content="https://coffie.ie/og-image.png">
-
-<!-- PWA -->
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#3B1F0E">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="CoffIE">
-<link rel="apple-touch-icon" href="/icon-192.png">
-
-<!-- Geo tags (helps local Irish SEO) -->
-<meta name="geo.region" content="IE">
-<meta name="geo.placename" content="Ireland">
-
-<!-- Structured Data (helps Google understand the app) -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "CoffIE",
-  "url": "https://coffie.ie",
-  "description": "Ireland's live coffee map — find cafés, check prices and read reviews across Ireland.",
-  "applicationCategory": "FoodEstablishment",
-  "operatingSystem": "Any",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
-  "author": { "@type": "Person", "name": "Michael Nolan" },
-  "areaServed": { "@type": "Country", "name": "Ireland" }
-}
-</script>
+<title>CoffIE — Gas for the Soul</title>
+<meta name="description" content="Ireland's live coffee map. Find the best coffee near you, see prices, read reviews.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -474,17 +420,6 @@ textarea.form-input { resize:none; }
   </div>
 </div>
 
-<!-- PWA INSTALL BANNER -->
-<div id="install-banner" style="display:none;position:fixed;bottom:70px;left:12px;right:12px;z-index:600;background:var(--brown);border-radius:16px;padding:14px 16px;align-items:center;gap:12px;box-shadow:0 8px 30px rgba(26,10,0,0.4);">
-  <span style="font-size:24px;">☕</span>
-  <div style="flex:1;">
-    <div style="font-weight:700;color:var(--cream);font-size:13px;">Add CoffIE to your home screen</div>
-    <div style="font-size:11px;color:rgba(245,239,224,0.7);">Use it like a real app — no browser needed</div>
-  </div>
-  <button onclick="installApp()" style="background:var(--caramel2);color:var(--brown);border:none;border-radius:10px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;">Add</button>
-  <button onclick="dismissInstall()" style="background:transparent;border:none;color:rgba(245,239,224,0.6);font-size:18px;cursor:pointer;padding:4px;">×</button>
-</div>
-
 <!-- WELCOME MODAL -->
 <div id="welcome-modal" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(26,10,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:24px;">
   <div style="background:var(--cream);border-radius:24px;padding:28px 24px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(26,10,0,0.4);border:1.5px solid var(--caramel);text-align:center;">
@@ -888,11 +823,36 @@ function showCafe(c) {
        </div>`
     : `<div style="font-size:13px;color:var(--muted);padding:14px;text-align:center;">No Google Place ID linked.</div>`;
 
+  // Get readable Google business type
+  function getBusinessType(types) {
+    if (!types || !types.length) return null;
+    const typeMap = {
+      'bakery': 'Bakery', 'cafe': 'Café', 'restaurant': 'Restaurant',
+      'food': 'Food', 'bar': 'Bar', 'meal_takeaway': 'Takeaway',
+      'meal_delivery': 'Delivery', 'coffee_shop': 'Coffee Shop',
+      'patisserie': 'Patisserie', 'tea_house': 'Tea House',
+      'sandwich_shop': 'Sandwich Shop', 'deli': 'Deli',
+      'breakfast_restaurant': 'Breakfast', 'brunch_restaurant': 'Brunch',
+      'grocery_or_supermarket': 'Supermarket', 'convenience_store': 'Convenience Store',
+      'gas_station': 'Petrol Station', 'lodging': 'Hotel',
+      'wedding_bakery': 'Wedding Bakery', 'florist': 'Florist',
+      'store': 'Shop', 'establishment': null, 'point_of_interest': null,
+      'food_establishment': null
+    };
+    for (const t of types) {
+      if (typeMap[t] !== undefined && typeMap[t] !== null) return typeMap[t];
+    }
+    return null;
+  }
+
+  const bizType = getBusinessType(c.types || []);
+
   document.getElementById('cafe-content').innerHTML = `
     <div class="cafe-name">${c.name}</div>
     <div class="cafe-meta">
       ${getOpenBadge(c)}
       ${getHoursText(c) ? '<span style="font-size:12px;color:var(--muted);">' + (getHoursText(c).split(': ')[1] || '') + '</span>' : ''}
+      ${bizType ? '<span style="font-size:11px;background:rgba(200,132,58,0.15);color:var(--brown2);padding:2px 8px;border-radius:10px;font-weight:600;">📍 ' + bizType + '</span>' : ''}
       <span>${c.address}</span>
       ${c.featured ? '<span style="background:rgba(212,168,67,0.2);color:#8a6200;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">★ Featured</span>' : ''}
     </div>
@@ -916,9 +876,18 @@ function showCafe(c) {
       <button class="btn btn-primary" onclick="openMaps(${c.lat},${c.lng},'${c.name}')">🗺️ Directions</button>
     </div>
     <button class="btn btn-caramel btn-full" onclick="showToast('Gas — added to your list! 📍')">+ Add to My List</button>
+    <button onclick="reportNotCafe('${c.id}','${c.name.replace(/'/g,"\\'")}','${bizType||'unknown'}')" style="width:100%;margin-top:8px;background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:8px;text-decoration:underline;">🚩 Not a café? Report this listing</button>
   `;
   openSheet('cafe-sheet');
   } catch(e) { console.error('showCafe error:', e); }
+}
+
+function reportNotCafe(id, name, type) {
+  const subject = encodeURIComponent(`Not a café: ${name}`);
+  const body = encodeURIComponent(`Hi,\n\nI'd like to report that "${name}" (ID: ${id}) doesn't appear to be a café — it seems to be a ${type}.\n\nPlease review and remove if appropriate.\n\nThanks!`);
+  window.open(`mailto:muggacoffie@gmail.com?subject=${subject}&body=${body}`);
+  showToast('Thanks for the report — we\'ll look into it! 🙏');
+  closeSheet();
 }
 
 function switchReviewTab(tab, cafeId) {
@@ -1142,43 +1111,6 @@ function shareCoffie() {
   });
 }
 
-// ---- PWA INSTALL PROMPT ----
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  // Show install banner after 30 seconds if not already installed
-  setTimeout(() => {
-    if (deferredPrompt) showInstallBanner();
-  }, 30000);
-});
-
-function showInstallBanner() {
-  if (localStorage.getItem('coffie_install_dismissed')) return;
-  const banner = document.getElementById('install-banner');
-  if (banner) banner.style.display = 'flex';
-}
-
-function installApp() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(choice => {
-    if (choice.outcome === 'accepted') showToast('CoffIE added to your home screen! ☕');
-    deferredPrompt = null;
-    document.getElementById('install-banner').style.display = 'none';
-  });
-}
-
-function dismissInstall() {
-  document.getElementById('install-banner').style.display = 'none';
-  localStorage.setItem('coffie_install_dismissed', '1');
-}
-
-window.addEventListener('appinstalled', () => {
-  showToast('CoffIE installed! ☕');
-  deferredPrompt = null;
-});
-
 // ---- WELCOME MODAL ----
 function showWelcome() {
   if (!localStorage.getItem('coffie_welcomed')) {
@@ -1192,9 +1124,6 @@ function dismissWelcome() {
 }
 
 // ---- INIT ----
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
-}
 document.getElementById('mode-pill').style.display = 'flex';
 buildCountyGrid();
 showWelcome();

@@ -875,17 +875,25 @@ function showCafe(c) {
       <button class="btn btn-secondary" onclick="prefillReport('${c.id}'); closeSheet(); setTimeout(()=>openSheet('report-sheet'),50);">📝 Report Price</button>
       <button class="btn btn-primary" onclick="openMaps(${c.lat},${c.lng},'${c.name}')">🗺️ Directions</button>
     </div>
-    <button class="btn btn-caramel btn-full" onclick="showToast('Gas — added to your list! 📍')">+ Add to My List</button>
-    <button onclick="reportNotCafe('${c.id}','${c.name.replace(/'/g,"\\'")}','${bizType||'unknown'}')" style="width:100%;margin-top:8px;background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:8px;text-decoration:underline;">🚩 Not a café? Report this listing</button>
+    <button onclick="reportNotCafe('${c.id}','${c.name.replace(/'/g,"\\'")}','${bizType||'unknown'}')" style="width:100%;margin-top:8px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;padding:11px;font-family:'DM Sans',sans-serif;">🚩 Not a café? Report this listing</button>
+    <button class="btn btn-caramel btn-full" onclick="showToast('Gas — added to your list! 📍')" style="margin-top:8px;">+ Add to My List</button>
   `;
   openSheet('cafe-sheet');
   } catch(e) { console.error('showCafe error:', e); }
 }
 
-function reportNotCafe(id, name, type) {
-  const subject = encodeURIComponent(`Not a café: ${name}`);
-  const body = encodeURIComponent(`Hi,\n\nI'd like to report that "${name}" (ID: ${id}) doesn't appear to be a café — it seems to be a ${type}.\n\nPlease review and remove if appropriate.\n\nThanks!`);
-  window.open(`mailto:muggacoffie@gmail.com?subject=${subject}&body=${body}`);
+async function reportNotCafe(id, name, type) {
+  const reason = `Not a café — appears to be: ${type}`;
+  const { error } = await db.from('reports').insert({
+    cafe_id: id,
+    cafe_name: name,
+    reason
+  });
+  if (error) {
+    console.error('Report error:', error);
+    showToast('Something went wrong — try again');
+    return;
+  }
   showToast('Thanks for the report — we\'ll look into it! 🙏');
   closeSheet();
 }

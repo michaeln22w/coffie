@@ -3,7 +3,7 @@ const { createClient } = require('@supabase/supabase-js');
 // ---- YOUR KEYS ----
 const SUPABASE_URL = 'https://ufqlbzxgclgkzhtknvgj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_bxr5571LFdx6g1vxQrC7WA_ijowQpAp'; // ← replace before running
-const GOOGLE_KEY = 'AIzaSyBpc1VsFUdzCrUzeSYzaO2ofk--DiN9roo';         // ← replace before running
+const GOOGLE_KEY = 'AIzaSyC0OrtfHpAEGBI6oRVU3BN11WFEb6fvVO0';         // ← replace before running
 
 // ---- GRID CONFIG ----
 const LAT_MIN = 51.4;

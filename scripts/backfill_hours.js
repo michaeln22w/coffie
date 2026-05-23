@@ -1,7 +1,7 @@
 // ---- YOUR KEYS ----
 const SUPABASE_URL = 'https://ufqlbzxgclgkzhtknvgj.supabase.co';
 const SUPABASE_KEY = 'YOUR_SUPABASE_SECRET_KEY'; // ← replace before running
-const GOOGLE_KEY   = 'AIzaSyBpc1VsFUdzCrUzeSYzaO2ofk--DiN9roo';       // ← replace before running
+const GOOGLE_KEY   = 'AIzaSyC0OrtfHpAEGBI6oRVU3BN11WFEb6fvVO0';       // ← replace before running
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
 

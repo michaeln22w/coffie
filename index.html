@@ -159,7 +159,8 @@ textarea.form-input { resize:none; }
     <div class="logo-sub">gas for the soul ☕</div>
   </div>
   <div class="header-right">
-    <div class="icon-btn" onclick="openSheet('county-sheet')">🗺</div>
+    <div class="icon-btn" id="map-style-btn" onclick="toggleMapStyle()" title="Toggle satellite">🗺️</div>
+    <div class="icon-btn" onclick="openSheet('county-sheet')">🏴󠁧󠁢󠁩󠁥󠁿</div>
     <div class="icon-btn" onclick="openSheet('report-sheet')">＋</div>
     <div class="icon-btn" onclick="locateUser()">⊕</div>
   </div>
@@ -514,7 +515,10 @@ let userLng = null;
 
 // ---- MAP ----
 const map = L.map('map', {zoomControl:false}).setView([53.35, -7.95], 7);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap', maxZoom:19}).addTo(map);
+const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap', maxZoom:19});
+const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution:'© Esri, Maxar, Earthstar Geographics', maxZoom:19});
+let currentLayer = streetLayer;
+streetLayer.addTo(map);
 L.control.zoom({position:'bottomright'}).addTo(map);
 
 // ---- LOAD CAFÉS ----
@@ -1058,6 +1062,26 @@ function clearCounty() {
   renderMarkers(allCafes);
   renderNearby(allCafes);
   showToast('☕ Showing all of Ireland');
+}
+
+// ---- MAP STYLE TOGGLE ----
+function toggleMapStyle() {
+  const btn = document.getElementById('map-style-btn');
+  if (currentLayer === streetLayer) {
+    map.removeLayer(streetLayer);
+    satelliteLayer.addTo(map);
+    currentLayer = satelliteLayer;
+    btn.textContent = '🛰️';
+    btn.title = 'Switch to street map';
+    showToast('🛰️ Satellite view');
+  } else {
+    map.removeLayer(satelliteLayer);
+    streetLayer.addTo(map);
+    currentLayer = streetLayer;
+    btn.textContent = '🗺️';
+    btn.title = 'Switch to satellite';
+    showToast('🗺️ Street view');
+  }
 }
 
 // ---- LOCATE ----

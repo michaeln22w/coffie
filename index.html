@@ -174,6 +174,7 @@ textarea.form-input { resize:none; }
     <div class="chip" onclick="setChip(this,'chain')">🔗 Chains</div>
     <div class="chip" onclick="setChip(this,'cheap')">💰 Cheapest</div>
     <div class="chip" onclick="setChip(this,'open')">🟢 Open Now</div>
+    <div class="chip" id="surprise-chip" onclick="surpriseMe()">🎲 Surprise Me</div>
   </div>
   <div class="map-wrap">
     <div class="map-search">
@@ -315,10 +316,6 @@ textarea.form-input { resize:none; }
       <div style="background:var(--cream2);border-radius:14px;padding:16px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;">
         <span style="font-size:28px;">📶</span>
         <div><div style="font-weight:700;color:var(--brown2);font-size:14px;">WiFi & Dog Friendly Filters</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">Find the right spot for you</div></div>
-      </div>
-      <div style="background:var(--cream2);border-radius:14px;padding:16px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;">
-        <span style="font-size:28px;">🎲</span>
-        <div><div style="font-weight:700;color:var(--brown2);font-size:14px;">Surprise Me</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">Discover a random open café near you</div></div>
       </div>
     </div>
   </div>
@@ -488,6 +485,29 @@ textarea.form-input { resize:none; }
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="closeSheet()">Cancel</button>
       <button class="btn btn-primary" onclick="submitPrice()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- SURPRISE ME SHEET -->
+<div class="bottom-sheet" id="surprise-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-content">
+    <div class="section-title">🎲 Surprise Me</div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:20px;">Find a random open café near you. How far are you willing to go?</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-size:14px;font-weight:600;color:var(--brown);">Distance</span>
+      <span id="surprise-dist-label" style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--caramel);">10 km</span>
+    </div>
+    <input type="range" id="surprise-slider" min="1" max="50" value="10"
+      oninput="document.getElementById('surprise-dist-label').textContent = this.value + ' km'"
+      style="width:100%;accent-color:var(--caramel);height:6px;margin-bottom:8px;">
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:24px;">
+      <span>1 km</span><span>25 km</span><span>50 km</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeSheet()">Cancel</button>
+      <button class="btn btn-primary" onclick="doSurpriseMe()">Let's go ☕</button>
     </div>
   </div>
 </div>
@@ -1117,6 +1137,36 @@ function locateUser() {
     renderNearby(allCafes);
     showToast('📍 Located!');
   }, () => showToast('Could not get location'));
+}
+
+// ---- SURPRISE ME ----
+function surpriseMe() {
+  if (!navigator.geolocation) { showToast('Location not supported'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    userLat = pos.coords.latitude;
+    userLng = pos.coords.longitude;
+    openSheet('surprise-sheet');
+  }, () => showToast('Could not get location'));
+}
+
+function doSurpriseMe() {
+  const maxDist = parseInt(document.getElementById('surprise-slider').value);
+  const candidates = allCafes.filter(c => {
+    if (!c.lat || !c.lng) return false;
+    if (isOpenNow(c) !== true) return false;
+    const dist = getDistance(userLat, userLng, c.lat, c.lng);
+    return dist <= maxDist;
+  });
+  closeSheet();
+  if (!candidates.length) {
+    showToast(`No open cafés within ${maxDist}km 😔`);
+    return;
+  }
+  const pick = candidates[Math.floor(Math.random() * candidates.length)];
+  map.setView([pick.lat, pick.lng], 16);
+  switchView('map', document.querySelector('.nav-item'));
+  setTimeout(() => showCafe(pick), 400);
+  showToast(`🎲 Found one — ${pick.name}!`);
 }
 
 // ---- SHEETS ----

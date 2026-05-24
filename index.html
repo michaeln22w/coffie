@@ -497,13 +497,13 @@ textarea.form-input { resize:none; }
     <p style="font-size:14px;color:var(--muted);margin-bottom:20px;">Find a random open café near you. How far are you willing to go?</p>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
       <span style="font-size:14px;font-weight:600;color:var(--brown);">Distance</span>
-      <span id="surprise-dist-label" style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--caramel);">10 km</span>
+      <span id="surprise-dist-label" style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--caramel);">1 km</span>
     </div>
-    <input type="range" id="surprise-slider" min="1" max="50" value="10"
-      oninput="document.getElementById('surprise-dist-label').textContent = this.value + ' km'"
+    <input type="range" id="surprise-slider" min="0" max="58" value="9"
+      oninput="updateSurpriseLabel(this.value)"
       style="width:100%;accent-color:var(--caramel);height:6px;margin-bottom:8px;">
     <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:24px;">
-      <span>1 km</span><span>25 km</span><span>50 km</span>
+      <span>100m</span><span>~10 km</span><span>50 km</span>
     </div>
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="closeSheet()">Cancel</button>
@@ -1140,6 +1140,21 @@ function locateUser() {
 }
 
 // ---- SURPRISE ME ----
+// Steps: 0=100m, 1=200m ... 8=900m, 9=1km, 10=2km ... 58=50km
+const SURPRISE_STEPS = [];
+for (let m = 100; m <= 900; m += 100) SURPRISE_STEPS.push(m / 1000);   // 0.1 … 0.9 km
+for (let k = 1; k <= 50; k++) SURPRISE_STEPS.push(k);                   // 1 … 50 km
+
+function surpriseStepToKm(step) {
+  return SURPRISE_STEPS[parseInt(step)] || 1;
+}
+
+function updateSurpriseLabel(step) {
+  const km = surpriseStepToKm(step);
+  const label = km < 1 ? (km * 1000) + 'm' : km + ' km';
+  document.getElementById('surprise-dist-label').textContent = label;
+}
+
 function surpriseMe() {
   if (!navigator.geolocation) { showToast('Location not supported'); return; }
   navigator.geolocation.getCurrentPosition(pos => {
@@ -1150,16 +1165,16 @@ function surpriseMe() {
 }
 
 function doSurpriseMe() {
-  const maxDist = parseInt(document.getElementById('surprise-slider').value);
+  const maxDist = surpriseStepToKm(document.getElementById('surprise-slider').value);
   const candidates = allCafes.filter(c => {
     if (!c.lat || !c.lng) return false;
     if (isOpenNow(c) !== true) return false;
-    const dist = getDistance(userLat, userLng, c.lat, c.lng);
-    return dist <= maxDist;
+    return getDistance(userLat, userLng, c.lat, c.lng) <= maxDist;
   });
   closeSheet();
   if (!candidates.length) {
-    showToast(`No open cafés within ${maxDist}km 😔`);
+    const label = maxDist < 1 ? (maxDist * 1000) + 'm' : maxDist + 'km';
+    showToast(`No open cafés within ${label} 😔`);
     return;
   }
   const pick = candidates[Math.floor(Math.random() * candidates.length)];

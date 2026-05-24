@@ -60,8 +60,8 @@ header { background:var(--brown); padding:0 16px; height:58px; display:flex; ali
 .coffee-dot.m-high    { background:#b8860b; border-color:var(--gold); }
 .coffee-dot.m-mid     { background:#c8843a; border-color:var(--caramel2); }
 .coffee-dot.m-low     { background:#555;    border-color:#888; }
-.coffee-marker { background:var(--brown); border:2px solid var(--caramel); border-radius:10px; padding:5px 9px; font-family:'DM Sans',sans-serif; color:var(--cream); white-space:nowrap; cursor:pointer; box-shadow:0 2px 10px rgba(26,10,0,0.35); display:flex; flex-direction:column; align-items:flex-start; gap:1px; min-width:60px; }
-.coffee-marker .cm-name { font-weight:700; font-size:12px; line-height:1.2; letter-spacing:0.1px; }
+.coffee-marker { background:var(--brown); border:2px solid var(--caramel); border-radius:10px; padding:5px 9px; font-family:'DM Sans',sans-serif; color:var(--cream); white-space:nowrap; cursor:pointer; box-shadow:0 2px 10px rgba(26,10,0,0.35); display:inline-flex; flex-direction:column; align-items:flex-start; gap:1px; max-width:160px; overflow:hidden; }
+.coffee-marker .cm-name { font-weight:700; font-size:12px; line-height:1.2; letter-spacing:0.1px; max-width:140px; overflow:hidden; text-overflow:ellipsis; }
 .coffee-marker .cm-price { font-size:11px; font-weight:500; color:var(--caramel2); line-height:1.2; }
 .coffee-marker.featured { border-color:var(--gold); background:var(--brown2); }
 .coffee-marker.m-open   { background:#2d7a2d; border-color:#4caf50; }
@@ -702,15 +702,15 @@ function renderMarkers(cafes) {
         bottomLine = r ? `⭐ ${r}` : '☆ No rating';
       } else if (markerMode === 'price') {
         topLine = shortName;
-        bottomLine = price ? `€${price}` : '— no price';
+        bottomLine = price ? `€${price}` : '☕ Be first!';
       } else {
         topLine = shortName;
-        bottomLine = price ? `☕ €${price}` : '☕ No price';
+        bottomLine = price ? `☕ €${price}` : '☕ Be first!';
       }
       icon = L.divIcon({
         className: '',
         html: `<div class="coffee-marker ${modeClass}"><div class="cm-name">${topLine}</div><div class="cm-price">${bottomLine}</div></div>`,
-        iconAnchor: [0, 0]
+        iconAnchor: [0, 44]
       });
     }
 

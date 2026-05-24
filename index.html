@@ -803,10 +803,11 @@ function getOpenBadge(cafe) {
 function getHoursText(cafe) {
   const oh = cafe.opening_hours;
   if (!oh || !oh.weekday_text || !oh.weekday_text.length) return null;
-  // Get today's hours
-  const dayIndex = new Date().getDay(); // 0=Sun
-  const reordered = [...oh.weekday_text.slice(1), oh.weekday_text[0]]; // Mon-Sun
-  return reordered[dayIndex === 0 ? 6 : dayIndex - 1] || null;
+  // Google weekday_text: index 0=Monday ... 6=Sunday
+  // JS getDay(): 0=Sunday, 1=Monday ... 6=Saturday
+  const jsDay = new Date().getDay();
+  const googleDay = jsDay === 0 ? 6 : jsDay - 1; // convert to Mon=0 ... Sun=6
+  return oh.weekday_text[googleDay] || null;
 }
 
 function showCafe(c) {

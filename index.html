@@ -480,7 +480,9 @@ textarea.form-input { resize:none; }
     <div class="section-title">📝 Report Prices</div>
     <label class="form-label">Café</label>
     <select class="form-input" id="report-cafe" style="appearance:none;"></select>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <label class="form-label" style="margin-top:10px;">Your Name <span style="color:#c0392b;">*</span></label>
+    <input class="form-input" type="text" id="report-name" placeholder="e.g. Aoife, CoffeeNerd123..." maxlength="50">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
       <div><label class="form-label">Flat White (€)</label><input class="form-input" type="number" step="0.10" id="report-fw" placeholder="3.50"></div>
       <div><label class="form-label">Americano (€)</label><input class="form-input" type="number" step="0.10" id="report-am" placeholder="2.90"></div>
       <div><label class="form-label">Latte (€)</label><input class="form-input" type="number" step="0.10" id="report-latte" placeholder="3.80"></div>
@@ -494,9 +496,14 @@ textarea.form-input { resize:none; }
       <div><label class="form-label">Croissant (€)</label><input class="form-input" type="number" step="0.10" id="report-croissant" placeholder="3.00"></div>
       <div><label class="form-label">Pastry/Treat (€)</label><input class="form-input" type="number" step="0.10" id="report-pastry" placeholder="3.50"></div>
     </div>
-    <div class="btn-row">
+    <div style="margin-top:14px;padding:12px;background:var(--cream2);border-radius:12px;border:1px solid var(--border);">
+      <label class="form-label" style="margin-bottom:8px;">☕ Something else? Add it!</label>
+      <input class="form-input" type="text" id="report-misc-name" placeholder="e.g. Oat Flat White, Rose Latte..." maxlength="60" style="margin-bottom:8px;">
+      <input class="form-input" type="number" step="0.10" id="report-misc-price" placeholder="Price (€)">
+    </div>
+    <div class="btn-row" style="margin-top:14px;">
       <button class="btn btn-secondary" onclick="closeSheet()">Cancel</button>
-      <button class="btn btn-primary" onclick="submitPrice()">Submit</button>
+      <button class="btn btn-primary" onclick="submitPrice()">Submit ☕</button>
     </div>
   </div>
 </div>
@@ -1024,6 +1031,10 @@ function prefillReport(cafeId) {
 
 async function submitPrice() {
   const cafeId = document.getElementById('report-cafe').value;
+  const name = document.getElementById('report-name').value.trim();
+
+  if (!name) { showToast('Please enter your name ☕'); document.getElementById('report-name').focus(); return; }
+
   const drinkFields = [
     { id: 'report-fw',      drink: 'flat white' },
     { id: 'report-am',      drink: 'americano' },
@@ -1038,16 +1049,27 @@ async function submitPrice() {
     { id: 'report-croissant',drink: 'croissant' },
     { id: 'report-pastry',  drink: 'pastry' },
   ];
+
   const inserts = drinkFields
     .map(f => ({ field: f, val: document.getElementById(f.id).value }))
     .filter(x => x.val)
-    .map(x => ({ cafe_id: cafeId, drink: x.field.drink, price: parseFloat(x.val) }));
+    .map(x => ({ cafe_id: cafeId, drink: x.field.drink, price: parseFloat(x.val), submitted_by: name }));
+
+  // Handle misc drink
+  const miscName = document.getElementById('report-misc-name').value.trim();
+  const miscPrice = document.getElementById('report-misc-price').value;
+  if (miscName && miscPrice) {
+    inserts.push({ cafe_id: cafeId, drink: miscName, price: parseFloat(miscPrice), submitted_by: name });
+  }
 
   if (!inserts.length) { showToast('Enter at least one price'); return; }
   await db.from('prices').insert(inserts);
   closeSheet();
-  showToast(`Legend! ${inserts.length} price${inserts.length>1?'s':''} submitted ☕`);
+  showToast(`Legend ${name}! ${inserts.length} price${inserts.length>1?'s':''} submitted ☕`);
   drinkFields.forEach(f => { document.getElementById(f.id).value = ''; });
+  document.getElementById('report-name').value = '';
+  document.getElementById('report-misc-name').value = '';
+  document.getElementById('report-misc-price').value = '';
   loadCafes();
 }
 

@@ -805,7 +805,7 @@ function renderMarkers(cafes) {
 function getLatestPrice(cafe, drink) {
   if (!cafe.prices || !cafe.prices.length) return null;
   const match = cafe.prices
-    .filter(p => p.drink.toLowerCase().includes(drink.toLowerCase()))
+    .filter(p => p.drink.toLowerCase() === drink.toLowerCase())
     .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
   return match.length ? parseFloat(match[0].price).toFixed(2) : null;
 }

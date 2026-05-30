@@ -1111,59 +1111,87 @@ function setCafeStar(n, cafeId) {
   });
 }
 
+const FUNNY_SUCCESS = [
+  "Deadly altogether! ☕",
+  "Sure that's gas! ☕",
+  "You're a pure legend! ☕",
+  "Ah here, you're sound! ☕",
+  "That's the one! ☕",
+  "Brilliant stuff altogether! ☕",
+  "Good man/woman yourself! ☕",
+  "You wouldn't be wrong! ☕",
+  "Fierce helpful entirely! ☕",
+  "Go on ya good thing! ☕",
+];
+
 async function submitCafeExperience(cafeId) {
   const name = document.getElementById('cafe-review-name').value.trim();
   const comment = document.getElementById('cafe-review-comment').value.trim();
   if (!name) { showToast('Please enter your name ☕'); document.getElementById('cafe-review-name').focus(); return; }
-  if (!cafeStarRating) { showToast('Please select a star rating ⭐'); return; }
+  if (!cafeStarRating) { showToast('Pick a star rating first ⭐'); return; }
 
-  // Submit review
-  const { error: revErr } = await db.from('reviews').insert([{
-    cafe_id: cafeId,
-    rating: cafeStarRating,
-    comment: comment || null,
-    submitted_by: name
-  }]);
-  if (revErr) { showToast('Error submitting review 😔'); console.error(revErr); return; }
+  // Disable button to prevent double submit
+  const btn = document.querySelector('#share-experience-form .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
 
-  // Submit any prices entered
-  const priceFields = [
-    { id: 'inline-fw',    drink: 'flat white' },
-    { id: 'inline-latte', drink: 'latte' },
-    { id: 'inline-am',    drink: 'americano' },
-    { id: 'inline-cap',   drink: 'cappuccino' },
-    { id: 'inline-esp',   drink: 'espresso' },
-    { id: 'inline-cort',  drink: 'cortado' },
-    { id: 'inline-matcha',drink: 'matcha latte' },
-    { id: 'inline-tea',   drink: 'tea' },
-  ];
-  const priceInserts = priceFields
-    .map(f => ({ field: f, val: document.getElementById(f.id)?.value }))
-    .filter(x => x.val)
-    .map(x => ({ cafe_id: cafeId, drink: x.field.drink, price: parseFloat(x.val), submitted_by: name }));
+  try {
+    // Submit review
+    const { error: revErr } = await db.from('reviews').insert([{
+      cafe_id: cafeId,
+      rating: cafeStarRating,
+      comment: comment || null,
+      submitted_by: name
+    }]);
+    if (revErr) { console.error('Review error:', revErr); showToast('Error submitting review 😔'); return; }
 
-  const miscName = document.getElementById('inline-misc-name')?.value.trim();
-  const miscPrice = document.getElementById('inline-misc-price')?.value;
-  if (miscName && miscPrice) {
-    priceInserts.push({ cafe_id: cafeId, drink: miscName, price: parseFloat(miscPrice), submitted_by: name });
+    // Submit any prices entered
+    const priceFields = [
+      { id: 'inline-fw',    drink: 'flat white' },
+      { id: 'inline-latte', drink: 'latte' },
+      { id: 'inline-am',    drink: 'americano' },
+      { id: 'inline-cap',   drink: 'cappuccino' },
+      { id: 'inline-esp',   drink: 'espresso' },
+      { id: 'inline-cort',  drink: 'cortado' },
+      { id: 'inline-matcha',drink: 'matcha latte' },
+      { id: 'inline-tea',   drink: 'tea' },
+    ];
+    const priceInserts = priceFields
+      .map(f => ({ field: f, val: document.getElementById(f.id)?.value }))
+      .filter(x => x.val)
+      .map(x => ({ cafe_id: cafeId, drink: x.field.drink, price: parseFloat(x.val), submitted_by: name }));
+
+    const miscName = document.getElementById('inline-misc-name')?.value.trim();
+    const miscPrice = document.getElementById('inline-misc-price')?.value;
+    if (miscName && miscPrice) {
+      priceInserts.push({ cafe_id: cafeId, drink: miscName, price: parseFloat(miscPrice), submitted_by: name });
+    }
+
+    if (priceInserts.length) {
+      const { error: priceErr } = await db.from('prices').insert(priceInserts);
+      if (priceErr) console.error('Price error:', priceErr);
+    }
+
+    // Success — show funny message and replace form with success card
+    const funny = FUNNY_SUCCESS[Math.floor(Math.random() * FUNNY_SUCCESS.length)];
+    const priceMsg = priceInserts.length ? `<br><span style="font-size:12px;color:var(--muted);">${priceInserts.length} price${priceInserts.length>1?'s':''} added too 💰</span>` : '';
+    const form = document.getElementById('share-experience-form');
+    if (form) {
+      form.innerHTML = `
+        <div style="text-align:center;padding:20px 10px;">
+          <div style="font-size:36px;margin-bottom:10px;">☕</div>
+          <div style="font-size:16px;font-weight:700;color:var(--brown);margin-bottom:6px;">Thanks ${name}!</div>
+          <div style="font-size:14px;color:var(--caramel);font-weight:600;margin-bottom:4px;">${funny}</div>
+          ${priceMsg}
+        </div>`;
+    }
+
+    // Clear state
+    cafeStarRating = 0;
+    loadCafes();
+
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit ☕'; }
   }
-
-  if (priceInserts.length) {
-    await db.from('prices').insert(priceInserts);
-  }
-
-  const priceMsg = priceInserts.length ? ` + ${priceInserts.length} price${priceInserts.length>1?'s':''}` : '';
-  showToast(`Gas one ${name}! Review${priceMsg} submitted ☕`);
-
-  // Clear form
-  document.getElementById('cafe-review-name').value = '';
-  document.getElementById('cafe-review-comment').value = '';
-  priceFields.forEach(f => { const el = document.getElementById(f.id); if(el) el.value = ''; });
-  if (document.getElementById('inline-misc-name')) document.getElementById('inline-misc-name').value = '';
-  if (document.getElementById('inline-misc-price')) document.getElementById('inline-misc-price').value = '';
-  cafeStarRating = 0;
-  document.querySelectorAll('#cafe-stars .star-sel').forEach(s => s.classList.remove('selected'));
-  loadCafes();
 }
 
 // ---- SUBMIT PRICE ----

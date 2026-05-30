@@ -983,6 +983,7 @@ function showCafe(c) {
     <div id="review-panel-google" style="display:none;">${googleReviews}</div>
 
     <div id="share-experience-form" style="margin-top:14px;background:var(--cream2);border-radius:16px;padding:16px;border:1px solid var(--border);">
+      <input type="hidden" id="experience-cafe-id" value="${c.id}">
       <div style="font-size:14px;font-weight:700;color:var(--brown);margin-bottom:14px;">☕ Share your experience</div>
       <input class="form-input" type="text" id="cafe-review-name" placeholder="Your name *" maxlength="50" style="margin-bottom:10px;">
       <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Rating *</div>
@@ -1009,7 +1010,7 @@ function showCafe(c) {
         <div><label style="font-size:11px;color:var(--muted);">Other drink name</label><input class="form-input" type="text" id="inline-misc-name" placeholder="e.g. Oat Latte" maxlength="60"></div>
         <div><label style="font-size:11px;color:var(--muted);">Price</label><input class="form-input" type="number" step="0.10" id="inline-misc-price" placeholder="€"></div>
       </div>
-      <button class="btn btn-primary" style="width:100%;" onclick="submitCafeExperience('${c.id}')">Submit ☕</button>
+      <button class="btn btn-primary" style="width:100%;" onclick="submitCafeExperience()">Submit ☕</button>
     </div>
 
     <div class="btn-row" style="margin-top:14px;">
@@ -1124,9 +1125,11 @@ const FUNNY_SUCCESS = [
   "Go on ya good thing! ☕",
 ];
 
-async function submitCafeExperience(cafeId) {
+async function submitCafeExperience() {
+  const cafeId = document.getElementById('experience-cafe-id')?.value;
   const name = document.getElementById('cafe-review-name').value.trim();
   const comment = document.getElementById('cafe-review-comment').value.trim();
+  if (!cafeId) { showToast('Something went wrong — please reopen the café 😔'); return; }
   if (!name) { showToast('Please enter your name ☕'); document.getElementById('cafe-review-name').focus(); return; }
   if (!cafeStarRating) { showToast('Pick a star rating first ⭐'); return; }
 

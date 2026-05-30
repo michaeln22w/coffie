@@ -982,7 +982,7 @@ function showCafe(c) {
     <div id="review-panel-app">${appReviews}</div>
     <div id="review-panel-google" style="display:none;">${googleReviews}</div>
 
-    <div style="margin-top:14px;background:var(--cream2);border-radius:16px;padding:16px;border:1px solid var(--border);">
+    <div id="share-experience-form" style="margin-top:14px;background:var(--cream2);border-radius:16px;padding:16px;border:1px solid var(--border);">
       <div style="font-size:14px;font-weight:700;color:var(--brown);margin-bottom:14px;">☕ Share your experience</div>
       <input class="form-input" type="text" id="cafe-review-name" placeholder="Your name *" maxlength="50" style="margin-bottom:10px;">
       <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Rating *</div>
@@ -1044,6 +1044,8 @@ function switchReviewTab(tab, cafeId) {
   document.getElementById('rtab-google').classList.toggle('active', tab === 'google');
   document.getElementById('review-panel-app').style.display    = tab === 'app'    ? '' : 'none';
   document.getElementById('review-panel-google').style.display = tab === 'google' ? '' : 'none';
+  const form = document.getElementById('share-experience-form');
+  if (form) form.style.display = tab === 'app' ? '' : 'none';
 }
 
 function openMaps(lat, lng, name) {

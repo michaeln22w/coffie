@@ -1,7 +1,5 @@
-const CACHE_NAME = 'coffie-v1';
+const CACHE_NAME = 'coffie-v2';
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
   '/manifest.json'
 ];
 
@@ -22,16 +20,28 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Network first for API calls, cache first for static assets
-  if (e.request.url.includes('supabase') || e.request.url.includes('googleapis')) {
-    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-  } else {
+  const url = e.request.url;
+
+  // Always network-first for HTML (index.html / root) — never serve stale app shell
+  if (e.request.mode === 'navigate' || url.endsWith('/') || url.includes('index.html')) {
     e.respondWith(
-      caches.match(e.request).then(cached => cached || fetch(e.request).then(response => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
-        return response;
-      }))
+      fetch(e.request).catch(() => caches.match(e.request))
     );
+    return;
   }
+
+  // Network-first for API calls
+  if (url.includes('supabase') || url.includes('googleapis')) {
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+    return;
+  }
+
+  // Cache-first for everything else (manifest, icons, etc.)
+  e.respondWith(
+    caches.match(e.request).then(cached => cached || fetch(e.request).then(response => {
+      const clone = response.clone();
+      caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+      return response;
+    }))
+  );
 });

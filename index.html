@@ -191,6 +191,7 @@ textarea.form-input { resize:none; }
     <div class="chip" onclick="setChip(this,'chain')">🔗 Chains</div>
     <div class="chip" onclick="setChip(this,'cheap')">💰 Cheapest</div>
     <div class="chip" onclick="setChip(this,'open')">🟢 Open Now</div>
+    <div class="chip" onclick="setChip(this,'other')">🍺 Also Serves ☕</div>
     <div class="chip" id="surprise-chip" onclick="surpriseMe()">🎲 Surprise Me</div>
   </div>
   <div class="map-wrap">
@@ -594,8 +595,8 @@ async function loadCafes() {
   }
 
   allCafes = allData;
-  renderMarkers(allCafes);
-  renderNearby(allCafes);
+  renderMarkers(getCurrentFiltered());
+  renderNearby(allCafes.filter(c => c.type !== 'other'));
   populateReportSelect(allCafes);
 }
 
@@ -613,6 +614,9 @@ function getCurrentFiltered() {
   let base = activeCounty
     ? allCafes.filter(c => c.address && c.address.toLowerCase().includes(activeCounty.toLowerCase()))
     : allCafes;
+  if (activeFilter === 'other') return base.filter(c => c.type === 'other');
+  // All other filters exclude 'other' type by default
+  base = base.filter(c => c.type !== 'other');
   if (activeFilter === 'indie') return base.filter(c => c.type === 'indie');
   if (activeFilter === 'chain') return base.filter(c => c.type === 'chain');
   if (activeFilter === 'cheap') return [...base].sort((a,b) => {

@@ -60,7 +60,7 @@ header { background:var(--brown); padding:0 16px; height:58px; display:flex; ali
 .coffee-dot.m-high    { background:#b8860b; border-color:var(--gold); }
 .coffee-dot.m-mid     { background:#c8843a; border-color:var(--caramel2); }
 .coffee-dot.m-low     { background:#555;    border-color:#888; }
-.coffee-marker { background:var(--brown); border:2px solid var(--caramel); border-radius:10px; padding:5px 9px; font-family:'DM Sans',sans-serif; color:var(--cream); white-space:nowrap; cursor:pointer; box-shadow:0 2px 10px rgba(26,10,0,0.35); display:inline-flex; flex-direction:column; align-items:flex-start; gap:1px; max-width:160px; overflow:hidden; }
+.coffee-marker { background:var(--brown); border:2px solid var(--caramel); border-radius:10px; padding:5px 14px 5px 9px; font-family:'DM Sans',sans-serif; color:var(--cream); white-space:nowrap; cursor:pointer; box-shadow:0 2px 10px rgba(26,10,0,0.35); display:inline-flex; flex-direction:column; align-items:flex-start; gap:1px; max-width:160px; overflow:hidden; }
 .coffee-marker .cm-name { font-weight:700; font-size:12px; line-height:1.2; letter-spacing:0.1px; max-width:140px; overflow:hidden; text-overflow:ellipsis; }
 .coffee-marker .cm-price { font-size:11px; font-weight:500; color:var(--caramel2); line-height:1.2; }
 .coffee-marker.featured { border-color:var(--gold); background:var(--brown2); }
@@ -663,7 +663,7 @@ function getMarkerClass(cafe) {
     const p = popular ? parseFloat(popular.price) : null;
     if (!p) return 'm-unknown';
     if (p <= 3.50) return 'm-open';   // cheap = green
-    if (p <= 4.20) return 'm-mid';    // mid = caramel
+    if (p <= 5.00) return 'm-mid';    // mid = caramel
     return 'm-closed';                // expensive = red
   }
   return cafe.featured ? 'featured' : '';
@@ -712,7 +712,7 @@ function renderMarkers(cafes) {
       if (markerMode === 'hours') {
         const open = isOpenNow(c);
         topLine = shortName;
-        bottomLine = open === true ? '☕ Open' : open === false ? '🫗 Closed' : '🕐 Unknown';
+        bottomLine = open === true ? '☕ Open' : open === false ? '🫗 Closed' : '· Unknown';
       } else if (markerMode === 'rating') {
         topLine = shortName;
         bottomLine = `${ratingPart} | ${pricePart}`;

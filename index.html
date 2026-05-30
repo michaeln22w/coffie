@@ -560,14 +560,14 @@ const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/
 let currentLayer = streetLayer;
 streetLayer.addTo(map);
 L.control.zoom({position:'bottomright'}).addTo(map);
-// Debounced re-render on zoom/pan
-let renderDebounceTimer = null;
-function scheduleRender() {
-  clearTimeout(renderDebounceTimer);
-  renderDebounceTimer = setTimeout(() => renderMarkers(getCurrentFiltered()), 150);
-}
-map.on('zoomend', scheduleRender);
-map.on('moveend', scheduleRender);
+// Only re-render on zoom (for label threshold switch at zoom 16)
+let lastZoom = map.getZoom();
+map.on('zoomend', () => {
+  const newZoom = map.getZoom();
+  const crossedThreshold = (lastZoom < 16) !== (newZoom < 16);
+  lastZoom = newZoom;
+  if (crossedThreshold) renderMarkers(getCurrentFiltered());
+});
 
 // ---- LOAD CAFÉS ----
 async function loadCafes() {
@@ -682,35 +682,18 @@ function renderMarkers(cafes) {
 
   markerLayer = L.markerClusterGroup({
     showCoverageOnHover: false,
-    maxClusterRadius: 40,
+    maxClusterRadius: 50,
     spiderfyOnMaxZoom: true,
-    disableClusteringAtZoom: 16,
+    disableClusteringAtZoom: 17,
+    chunkedLoading: true,
+    chunkInterval: 100,
+    chunkDelay: 50,
   });
 
   const zoom = map.getZoom();
   const showLabels = zoom >= 16;
 
-  // Viewport culling — expand bounds slightly so markers near edges still show
-  const bounds = map.getBounds().pad(0.15);
-  const centre = map.getCenter();
-
-  // Filter to viewport first
-  let visible = cafes.filter(c => {
-    if (!c.lat || !c.lng) return false;
-    if (zoom >= 10) return bounds.contains([c.lat, c.lng]);
-    return true;
-  });
-
-  // At mid-zoom, cap at 300 markers sorted by distance from centre
-  if (zoom >= 11 && zoom < 15 && visible.length > 300) {
-    visible = visible
-      .map(c => ({ c, d: Math.pow(c.lat - centre.lat, 2) + Math.pow(c.lng - centre.lng, 2) }))
-      .sort((a, b) => a.d - b.d)
-      .slice(0, 300)
-      .map(x => x.c);
-  }
-
-  visible.forEach(c => {
+  cafes.forEach(c => {
     if (!c.lat || !c.lng) return;
     if (!c.lat || !c.lng) return;
     // Use flat white price if available, otherwise any price

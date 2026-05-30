@@ -705,7 +705,8 @@ function renderMarkers(cafes) {
       const shortName = c.name.length > 18 ? c.name.slice(0, 17) + '…' : c.name;
       const r = getAvgRating(c);
       const ratingPart = r ? `⭐ ${r}` : '—';
-      const pricePart = price ? `☕ €${price}` : '☕ Be first!';
+      const popularPrice = getMostPopularPrice(c);
+      const pricePart = popularPrice ? `☕ ${popularPrice.drink} €${popularPrice.price}` : '☕ Be first!';
       if (markerMode === 'hours') {
         const open = isOpenNow(c);
         topLine = shortName;
@@ -741,6 +742,23 @@ function getLatestPrice(cafe, drink) {
     .filter(p => p.drink.toLowerCase().includes(drink.toLowerCase()))
     .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
   return match.length ? parseFloat(match[0].price).toFixed(2) : null;
+}
+
+function getMostPopularPrice(cafe) {
+  // Returns { drink, price } for the most submitted drink, avg price
+  if (!cafe.prices || !cafe.prices.length) return null;
+  const counts = {};
+  const totals = {};
+  for (const p of cafe.prices) {
+    const key = p.drink.toLowerCase();
+    counts[key] = (counts[key] || 0) + 1;
+    totals[key] = (totals[key] || 0) + parseFloat(p.price);
+  }
+  const topDrink = Object.keys(counts).sort((a,b) => counts[b] - counts[a])[0];
+  const avg = (totals[topDrink] / counts[topDrink]).toFixed(2);
+  // Capitalise first letter of each word
+  const label = topDrink.replace(/\b\w/g, c => c.toUpperCase());
+  return { drink: label, price: avg };
 }
 
 function getAvgRating(cafe) {

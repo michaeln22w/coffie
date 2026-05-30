@@ -688,14 +688,30 @@ function renderMarkers(cafes) {
   });
 
   const zoom = map.getZoom();
-  const showLabels = zoom >= 15;
+  const showLabels = zoom >= 16;
 
   // Viewport culling — expand bounds slightly so markers near edges still show
-  const bounds = map.getBounds().pad(0.3);
+  const bounds = map.getBounds().pad(0.15);
+  const centre = map.getCenter();
 
-  cafes.forEach(c => {
-    // Skip if outside viewport (with padding)
-    if (zoom >= 11 && (!bounds.contains([c.lat, c.lng]))) return;
+  // Filter to viewport first
+  let visible = cafes.filter(c => {
+    if (!c.lat || !c.lng) return false;
+    if (zoom >= 10) return bounds.contains([c.lat, c.lng]);
+    return true;
+  });
+
+  // At mid-zoom, cap at 300 markers sorted by distance from centre
+  if (zoom >= 11 && zoom < 15 && visible.length > 300) {
+    visible = visible
+      .map(c => ({ c, d: Math.pow(c.lat - centre.lat, 2) + Math.pow(c.lng - centre.lng, 2) }))
+      .sort((a, b) => a.d - b.d)
+      .slice(0, 300)
+      .map(x => x.c);
+  }
+
+  visible.forEach(c => {
+    if (!c.lat || !c.lng) return;
     if (!c.lat || !c.lng) return;
     // Use flat white price if available, otherwise any price
     const price = getLatestPrice(c, 'flat white') || (c.prices && c.prices.length

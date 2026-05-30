@@ -937,27 +937,41 @@ function showCafe(c) {
       <button class="review-tab active" id="rtab-app" onclick="switchReviewTab('app','${c.id}')">☕ CoffIE</button>
       <button class="review-tab" id="rtab-google" onclick="switchReviewTab('google','${c.id}')">🌐 Google</button>
     </div>
-    <div id="review-panel-app">
-      ${appReviews}
-      <div style="margin-top:12px;background:var(--cream2);border-radius:14px;padding:14px;border:1px solid var(--border);">
-        <div style="font-size:13px;font-weight:700;color:var(--brown);margin-bottom:10px;">Leave a review</div>
-        <div class="star-selector" id="cafe-stars" style="margin-bottom:10px;">
-          <span class="star-sel" onclick="setCafeStar(1,'${c.id}')">★</span>
-          <span class="star-sel" onclick="setCafeStar(2,'${c.id}')">★</span>
-          <span class="star-sel" onclick="setCafeStar(3,'${c.id}')">★</span>
-          <span class="star-sel" onclick="setCafeStar(4,'${c.id}')">★</span>
-          <span class="star-sel" onclick="setCafeStar(5,'${c.id}')">★</span>
-        </div>
-        <input class="form-input" type="text" id="cafe-review-name" placeholder="Your name (required)" maxlength="50" style="margin-bottom:8px;">
-        <textarea class="form-input" id="cafe-review-comment" rows="2" placeholder="What did you think? (optional)" maxlength="500" style="margin-bottom:10px;"></textarea>
-        <button class="btn btn-primary" style="width:100%;" onclick="submitCafeReview('${c.id}')">Submit Review ☕</button>
-      </div>
-    </div>
+    <div id="review-panel-app">${appReviews}</div>
     <div id="review-panel-google" style="display:none;">${googleReviews}</div>
 
-    <div class="btn-row">
-      <button class="btn btn-secondary" onclick="prefillReport('${c.id}'); closeSheet(); setTimeout(()=>openSheet('report-sheet'),50);">📝 Report Price</button>
-      <button class="btn btn-primary" onclick="openMaps(${c.lat},${c.lng},'${c.name}')">🗺️ Directions</button>
+    <div style="margin-top:14px;background:var(--cream2);border-radius:16px;padding:16px;border:1px solid var(--border);">
+      <div style="font-size:14px;font-weight:700;color:var(--brown);margin-bottom:14px;">☕ Share your experience</div>
+      <input class="form-input" type="text" id="cafe-review-name" placeholder="Your name *" maxlength="50" style="margin-bottom:10px;">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Rating *</div>
+      <div class="star-selector" id="cafe-stars" style="margin-bottom:12px;">
+        <span class="star-sel" onclick="setCafeStar(1,'${c.id}')">★</span>
+        <span class="star-sel" onclick="setCafeStar(2,'${c.id}')">★</span>
+        <span class="star-sel" onclick="setCafeStar(3,'${c.id}')">★</span>
+        <span class="star-sel" onclick="setCafeStar(4,'${c.id}')">★</span>
+        <span class="star-sel" onclick="setCafeStar(5,'${c.id}')">★</span>
+      </div>
+      <textarea class="form-input" id="cafe-review-comment" rows="2" placeholder="What did you think? (optional)" maxlength="500" style="margin-bottom:12px;"></textarea>
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;">Prices (optional — fill in what you paid)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div><label style="font-size:11px;color:var(--muted);">Flat White</label><input class="form-input" type="number" step="0.10" id="inline-fw" placeholder="€"></div>
+        <div><label style="font-size:11px;color:var(--muted);">Latte</label><input class="form-input" type="number" step="0.10" id="inline-latte" placeholder="€"></div>
+        <div><label style="font-size:11px;color:var(--muted);">Americano</label><input class="form-input" type="number" step="0.10" id="inline-am" placeholder="€"></div>
+        <div><label style="font-size:11px;color:var(--muted);">Cappuccino</label><input class="form-input" type="number" step="0.10" id="inline-cap" placeholder="€"></div>
+        <div><label style="font-size:11px;color:var(--muted);">Espresso</label><input class="form-input" type="number" step="0.10" id="inline-esp" placeholder="€"></div>
+        <div><label style="font-size:11px;color:var(--muted);">Cortado</label><input class="form-input" type="number" step="0.10" id="inline-cort" placeholder="€"></div>
+        <div><label style="font-size:11px;color:var(--muted);">Matcha</label><input class="form-input" type="number" step="0.10" id="inline-matcha" placeholder="€"></div>
+        <div><label style="font-size:11px;color:var(--muted);">Tea</label><input class="form-input" type="number" step="0.10" id="inline-tea" placeholder="€"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div><label style="font-size:11px;color:var(--muted);">Other drink name</label><input class="form-input" type="text" id="inline-misc-name" placeholder="e.g. Oat Latte" maxlength="60"></div>
+        <div><label style="font-size:11px;color:var(--muted);">Price</label><input class="form-input" type="number" step="0.10" id="inline-misc-price" placeholder="€"></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;" onclick="submitCafeExperience('${c.id}')">Submit ☕</button>
+    </div>
+
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="btn btn-secondary" onclick="openMaps(${c.lat},${c.lng},'${c.name}')">🗺️ Directions</button>
     </div>
     <button onclick="reportNotCafe('${c.id}','${c.name.replace(/'/g,"\\'")}','${bizType||'unknown'}')" style="width:100%;margin-top:8px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;padding:11px;font-family:'DM Sans',sans-serif;">🚩 Not a café? Report this listing</button>
     <button class="btn btn-caramel btn-full" onclick="showToast('Gas — added to your list! 📍')" style="margin-top:8px;">+ Add to My List</button>
@@ -1053,21 +1067,56 @@ function setCafeStar(n, cafeId) {
   });
 }
 
-async function submitCafeReview(cafeId) {
+async function submitCafeExperience(cafeId) {
   const name = document.getElementById('cafe-review-name').value.trim();
   const comment = document.getElementById('cafe-review-comment').value.trim();
-  if (!name) { showToast('Please enter your name'); document.getElementById('cafe-review-name').focus(); return; }
-  if (!cafeStarRating) { showToast('Please select a star rating'); return; }
-  const { error } = await db.from('reviews').insert([{
+  if (!name) { showToast('Please enter your name ☕'); document.getElementById('cafe-review-name').focus(); return; }
+  if (!cafeStarRating) { showToast('Please select a star rating ⭐'); return; }
+
+  // Submit review
+  const { error: revErr } = await db.from('reviews').insert([{
     cafe_id: cafeId,
     rating: cafeStarRating,
     comment: comment || null,
     submitted_by: name
   }]);
-  if (error) { showToast('Error submitting review 😔'); console.error(error); return; }
-  showToast(`Thanks ${name}! Review submitted ☕`);
+  if (revErr) { showToast('Error submitting review 😔'); console.error(revErr); return; }
+
+  // Submit any prices entered
+  const priceFields = [
+    { id: 'inline-fw',    drink: 'flat white' },
+    { id: 'inline-latte', drink: 'latte' },
+    { id: 'inline-am',    drink: 'americano' },
+    { id: 'inline-cap',   drink: 'cappuccino' },
+    { id: 'inline-esp',   drink: 'espresso' },
+    { id: 'inline-cort',  drink: 'cortado' },
+    { id: 'inline-matcha',drink: 'matcha latte' },
+    { id: 'inline-tea',   drink: 'tea' },
+  ];
+  const priceInserts = priceFields
+    .map(f => ({ field: f, val: document.getElementById(f.id)?.value }))
+    .filter(x => x.val)
+    .map(x => ({ cafe_id: cafeId, drink: x.field.drink, price: parseFloat(x.val), submitted_by: name }));
+
+  const miscName = document.getElementById('inline-misc-name')?.value.trim();
+  const miscPrice = document.getElementById('inline-misc-price')?.value;
+  if (miscName && miscPrice) {
+    priceInserts.push({ cafe_id: cafeId, drink: miscName, price: parseFloat(miscPrice), submitted_by: name });
+  }
+
+  if (priceInserts.length) {
+    await db.from('prices').insert(priceInserts);
+  }
+
+  const priceMsg = priceInserts.length ? ` + ${priceInserts.length} price${priceInserts.length>1?'s':''}` : '';
+  showToast(`Gas one ${name}! Review${priceMsg} submitted ☕`);
+
+  // Clear form
   document.getElementById('cafe-review-name').value = '';
   document.getElementById('cafe-review-comment').value = '';
+  priceFields.forEach(f => { const el = document.getElementById(f.id); if(el) el.value = ''; });
+  if (document.getElementById('inline-misc-name')) document.getElementById('inline-misc-name').value = '';
+  if (document.getElementById('inline-misc-price')) document.getElementById('inline-misc-price').value = '';
   cafeStarRating = 0;
   document.querySelectorAll('#cafe-stars .star-sel').forEach(s => s.classList.remove('selected'));
   loadCafes();

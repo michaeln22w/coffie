@@ -659,7 +659,8 @@ function getMarkerClass(cafe) {
     return 'm-low';
   }
   if (markerMode === 'price') {
-    const p = parseFloat(getLatestPrice(cafe, 'flat white'));
+    const popular = getMostPopularPrice(cafe);
+    const p = popular ? parseFloat(popular.price) : null;
     if (!p) return 'm-unknown';
     if (p <= 3.50) return 'm-open';   // cheap = green
     if (p <= 4.20) return 'm-mid';    // mid = caramel
@@ -706,7 +707,8 @@ function renderMarkers(cafes) {
       const r = getAvgRating(c);
       const ratingPart = r ? `⭐ ${r}` : '—';
       const popularPrice = getMostPopularPrice(c);
-      const pricePart = popularPrice ? `☕ ${popularPrice.drink} €${popularPrice.price}` : '☕ Be first!';
+      const drinkLabel = popularPrice ? (popularPrice.drink.length > 10 ? popularPrice.drink.slice(0,9) + '…' : popularPrice.drink) : null;
+      const pricePart = popularPrice ? `☕ ${drinkLabel} €${popularPrice.price}` : '☕ Be first!';
       if (markerMode === 'hours') {
         const open = isOpenNow(c);
         topLine = shortName;

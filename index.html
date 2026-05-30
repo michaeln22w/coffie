@@ -65,6 +65,10 @@ header { background:var(--brown); padding:0 16px; height:58px; display:flex; ali
 .coffee-marker .cm-price { font-size:11px; font-weight:500; color:var(--caramel2); line-height:1.2; }
 .coffee-marker.featured { border-color:var(--gold); background:var(--brown2); }
 .coffee-marker.m-open   { background:#2d7a2d; border-color:#4caf50; }
+.coffee-marker.m-closing { background:#c47a00; border-color:#f5a623; }
+.coffee-marker.m-opening { background:#7a6500; border-color:#d4a800; }
+.coffee-dot.m-closing { background:#c47a00; border-color:#f5a623; }
+.coffee-dot.m-opening { background:#7a6500; border-color:#d4a800; }
 .coffee-marker.m-open .cm-price { color:#a8e6a8; }
 .coffee-marker.m-closed { background:#b03030; border-color:#e05050; }
 .coffee-marker.m-closed .cm-price { color:#ffaaaa; }
@@ -644,11 +648,59 @@ function isOpenNow(cafe) {
   return false;
 }
 
+function getOpenStatus(cafe) {
+  const oh = cafe.opening_hours;
+  if (!oh || !oh.periods || !oh.periods.length) return null;
+
+  const now = new Date();
+  const day = now.getDay();
+  const mins = now.getHours() * 60 + now.getMinutes();
+  const hhmm = now.getHours() * 100 + now.getMinutes();
+
+  if (oh.periods.length === 1 && oh.periods[0].open?.time === '0000' && !oh.periods[0].close) return 'open';
+
+  for (const period of oh.periods) {
+    const openDay  = period.open?.day;
+    const openTime = parseInt(period.open?.time || '0000');
+    const closeDay = period.close?.day ?? openDay;
+    const closeTime = parseInt(period.close?.time || '2359');
+    if (openDay === undefined) continue;
+
+    const openMins  = Math.floor(openTime / 100) * 60 + (openTime % 100);
+    const closeMins = Math.floor(closeTime / 100) * 60 + (closeTime % 100);
+    const sameDay = closeDay === openDay;
+    const spansM  = closeDay === (openDay + 1) % 7;
+
+    let isOpen = false;
+    if (sameDay && day === openDay && hhmm >= openTime && hhmm < closeTime) isOpen = true;
+    if (spansM) {
+      if (day === openDay && hhmm >= openTime) isOpen = true;
+      if (day === closeDay && hhmm < closeTime) isOpen = true;
+    }
+
+    if (isOpen) {
+      let minsUntilClose;
+      if (day === closeDay) minsUntilClose = closeMins - mins;
+      else minsUntilClose = (closeMins + 1440) - mins;
+      if (minsUntilClose <= 60) return 'closing_soon';
+      return 'open';
+    }
+
+    if (day === openDay && hhmm < openTime) {
+      const minsUntilOpen = openMins - mins;
+      if (minsUntilOpen <= 60) return 'opening_soon';
+    }
+  }
+  return 'closed';
+}
+
 function getMarkerClass(cafe) {
   if (markerMode === 'hours') {
-    const open = isOpenNow(cafe);
-    if (open === true)  return 'm-open';
-    if (open === false) return 'm-closed';
+    const status = getOpenStatus(cafe);
+    if (status === 'open')         return 'm-open';
+    if (status === 'closing_soon') return 'm-closing';
+    if (status === 'opening_soon') return 'm-opening';
+    if (status === 'closed')       return 'm-closed';
     return 'm-unknown';
   }
   if (markerMode === 'rating') {
@@ -741,7 +793,7 @@ function renderMarkers(cafes) {
 function getLatestPrice(cafe, drink) {
   if (!cafe.prices || !cafe.prices.length) return null;
   const match = cafe.prices
-    .filter(p => p.drink.toLowerCase() === drink.toLowerCase())
+    .filter(p => p.drink.toLowerCase().includes(drink.toLowerCase()))
     .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
   return match.length ? parseFloat(match[0].price).toFixed(2) : null;
 }
@@ -860,9 +912,11 @@ const DRINKS = [
 ];
 
 function getOpenBadge(cafe) {
-  const open = isOpenNow(cafe);
-  if (open === true)  return `<span class="open-badge open">☕ Open now</span>`;
-  if (open === false) return `<span class="open-badge closed">🫗 Closed</span>`;
+  const status = getOpenStatus(cafe);
+  if (status === 'open')         return `<span class="open-badge open">☕ Open now</span>`;
+  if (status === 'closing_soon') return `<span class="open-badge" style="background:rgba(196,122,0,0.15);color:#c47a00;font-weight:700;">⚡ Closing Soon! Get in quick!</span>`;
+  if (status === 'opening_soon') return `<span class="open-badge" style="background:rgba(212,168,0,0.15);color:#7a6500;font-weight:700;">🌅 Opens Soon! Nearly time...</span>`;
+  if (status === 'closed')       return `<span class="open-badge closed">✕ Closed</span>`;
   return `<span class="open-badge" style="background:rgba(100,100,100,0.1);color:#666;">🕐 Hours unknown</span>`;
 }
 

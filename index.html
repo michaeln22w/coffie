@@ -684,7 +684,10 @@ function renderMarkers(cafes) {
 
   cafes.forEach(c => {
     if (!c.lat || !c.lng) return;
-    const price = getLatestPrice(c, 'flat white');
+    // Use flat white price if available, otherwise any price
+    const price = getLatestPrice(c, 'flat white') || (c.prices && c.prices.length
+      ? parseFloat(c.prices.sort((a,b) => new Date(b.created_at)-new Date(a.created_at))[0].price).toFixed(2)
+      : null);
     const modeClass = getMarkerClass(c);
 
     let icon;
@@ -934,7 +937,22 @@ function showCafe(c) {
       <button class="review-tab active" id="rtab-app" onclick="switchReviewTab('app','${c.id}')">☕ CoffIE</button>
       <button class="review-tab" id="rtab-google" onclick="switchReviewTab('google','${c.id}')">🌐 Google</button>
     </div>
-    <div id="review-panel-app">${appReviews}</div>
+    <div id="review-panel-app">
+      ${appReviews}
+      <div style="margin-top:12px;background:var(--cream2);border-radius:14px;padding:14px;border:1px solid var(--border);">
+        <div style="font-size:13px;font-weight:700;color:var(--brown);margin-bottom:10px;">Leave a review</div>
+        <div class="star-selector" id="cafe-stars" style="margin-bottom:10px;">
+          <span class="star-sel" onclick="setCafeStar(1,'${c.id}')">★</span>
+          <span class="star-sel" onclick="setCafeStar(2,'${c.id}')">★</span>
+          <span class="star-sel" onclick="setCafeStar(3,'${c.id}')">★</span>
+          <span class="star-sel" onclick="setCafeStar(4,'${c.id}')">★</span>
+          <span class="star-sel" onclick="setCafeStar(5,'${c.id}')">★</span>
+        </div>
+        <input class="form-input" type="text" id="cafe-review-name" placeholder="Your name (required)" maxlength="50" style="margin-bottom:8px;">
+        <textarea class="form-input" id="cafe-review-comment" rows="2" placeholder="What did you think? (optional)" maxlength="500" style="margin-bottom:10px;"></textarea>
+        <button class="btn btn-primary" style="width:100%;" onclick="submitCafeReview('${c.id}')">Submit Review ☕</button>
+      </div>
+    </div>
     <div id="review-panel-google" style="display:none;">${googleReviews}</div>
 
     <div class="btn-row">
@@ -1022,6 +1040,36 @@ async function submitCafe() {
   });
   subStarVal = 0;
   document.querySelectorAll('#sub-stars .star-sel').forEach(s => s.classList.remove('selected'));
+  loadCafes();
+}
+
+// ---- CAFE REVIEWS ----
+let cafeStarRating = 0;
+
+function setCafeStar(n, cafeId) {
+  cafeStarRating = n;
+  document.querySelectorAll('#cafe-stars .star-sel').forEach((s, i) => {
+    s.classList.toggle('selected', i < n);
+  });
+}
+
+async function submitCafeReview(cafeId) {
+  const name = document.getElementById('cafe-review-name').value.trim();
+  const comment = document.getElementById('cafe-review-comment').value.trim();
+  if (!name) { showToast('Please enter your name'); document.getElementById('cafe-review-name').focus(); return; }
+  if (!cafeStarRating) { showToast('Please select a star rating'); return; }
+  const { error } = await db.from('reviews').insert([{
+    cafe_id: cafeId,
+    rating: cafeStarRating,
+    comment: comment || null,
+    submitted_by: name
+  }]);
+  if (error) { showToast('Error submitting review 😔'); console.error(error); return; }
+  showToast(`Thanks ${name}! Review submitted ☕`);
+  document.getElementById('cafe-review-name').value = '';
+  document.getElementById('cafe-review-comment').value = '';
+  cafeStarRating = 0;
+  document.querySelectorAll('#cafe-stars .star-sel').forEach(s => s.classList.remove('selected'));
   loadCafes();
 }
 

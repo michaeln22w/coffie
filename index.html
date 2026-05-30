@@ -703,20 +703,22 @@ function renderMarkers(cafes) {
       // Full label: name + price/info
       let topLine, bottomLine;
       const shortName = c.name.length > 18 ? c.name.slice(0, 17) + '…' : c.name;
+      const r = getAvgRating(c);
+      const ratingPart = r ? `⭐ ${r}` : '—';
+      const pricePart = price ? `☕ €${price}` : '☕ Be first!';
       if (markerMode === 'hours') {
         const open = isOpenNow(c);
         topLine = shortName;
         bottomLine = open === true ? '☕ Open' : open === false ? '🫗 Closed' : '🕐 Unknown';
       } else if (markerMode === 'rating') {
-        const r = getAvgRating(c);
         topLine = shortName;
-        bottomLine = r ? `⭐ ${r}` : '☆ No rating';
+        bottomLine = `${ratingPart} | ${pricePart}`;
       } else if (markerMode === 'price') {
         topLine = shortName;
-        bottomLine = price ? `€${price}` : '☕ Be first!';
+        bottomLine = `${ratingPart} | ${pricePart}`;
       } else {
         topLine = shortName;
-        bottomLine = price ? `☕ €${price}` : '☕ Be first!';
+        bottomLine = `${ratingPart} | ${pricePart}`;
       }
       icon = L.divIcon({
         className: '',

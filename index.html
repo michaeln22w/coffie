@@ -651,44 +651,35 @@ function isOpenNow(cafe) {
 function getOpenStatus(cafe) {
   const oh = cafe.opening_hours;
   if (!oh || !oh.periods || !oh.periods.length) return null;
-
   const now = new Date();
   const day = now.getDay();
   const mins = now.getHours() * 60 + now.getMinutes();
   const hhmm = now.getHours() * 100 + now.getMinutes();
-
   if (oh.periods.length === 1 && oh.periods[0].open?.time === '0000' && !oh.periods[0].close) return 'open';
-
   for (const period of oh.periods) {
     const openDay  = period.open?.day;
     const openTime = parseInt(period.open?.time || '0000');
     const closeDay = period.close?.day ?? openDay;
     const closeTime = parseInt(period.close?.time || '2359');
     if (openDay === undefined) continue;
-
     const openMins  = Math.floor(openTime / 100) * 60 + (openTime % 100);
     const closeMins = Math.floor(closeTime / 100) * 60 + (closeTime % 100);
     const sameDay = closeDay === openDay;
     const spansM  = closeDay === (openDay + 1) % 7;
-
     let isOpen = false;
     if (sameDay && day === openDay && hhmm >= openTime && hhmm < closeTime) isOpen = true;
     if (spansM) {
       if (day === openDay && hhmm >= openTime) isOpen = true;
       if (day === closeDay && hhmm < closeTime) isOpen = true;
     }
-
     if (isOpen) {
       let minsUntilClose;
       if (day === closeDay) minsUntilClose = closeMins - mins;
       else minsUntilClose = (closeMins + 1440) - mins;
-      if (minsUntilClose <= 60) return 'closing_soon';
-      return 'open';
+      return minsUntilClose <= 60 ? 'closing_soon' : 'open';
     }
-
     if (day === openDay && hhmm < openTime) {
-      const minsUntilOpen = openMins - mins;
-      if (minsUntilOpen <= 60) return 'opening_soon';
+      if ((openMins - mins) <= 60) return 'opening_soon';
     }
   }
   return 'closed';
@@ -762,9 +753,13 @@ function renderMarkers(cafes) {
       const drinkLabel = popularPrice ? (popularPrice.drink.length > 10 ? popularPrice.drink.slice(0,9) + '…' : popularPrice.drink) : null;
       const pricePart = popularPrice ? `☕ ${drinkLabel} €${popularPrice.price}` : '☕ Be first!';
       if (markerMode === 'hours') {
-        const open = isOpenNow(c);
+        const status = getOpenStatus(c);
         topLine = shortName;
-        bottomLine = open === true ? '☕ Open' : open === false ? '✕ Closed' : '· Unknown';
+        if (status === 'open')              bottomLine = '☕ Open';
+        else if (status === 'closing_soon') bottomLine = '⚡ Closing Soon!';
+        else if (status === 'opening_soon') bottomLine = '🌅 Opens Soon!';
+        else if (status === 'closed')       bottomLine = '✕ Closed';
+        else                                bottomLine = '· Unknown';
       } else if (markerMode === 'rating') {
         topLine = shortName;
         bottomLine = `${ratingPart} | ${pricePart}`;
